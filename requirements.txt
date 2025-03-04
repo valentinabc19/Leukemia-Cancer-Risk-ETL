@@ -19,6 +19,7 @@ matplotlib==3.10.1
 matplotlib-inline==0.1.7
 nest-asyncio==1.6.0
 numpy==2.2.3
+os-sys == 2.1.4
 packaging==24.2
 pandas==2.2.3
 parso==0.8.4

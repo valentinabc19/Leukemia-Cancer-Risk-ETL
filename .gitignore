@@ -3,3 +3,6 @@ venv/
 
 #db credentials
 dbconnection/credentials.json
+
+# vscode files
+.vscode/
