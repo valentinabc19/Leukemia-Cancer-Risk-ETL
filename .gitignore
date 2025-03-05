@@ -1,2 +1,8 @@
 # virtual environment
 venv/
+
+#db credentials
+notebooks/credentials.json
+
+# vscode files
+.vscode/
