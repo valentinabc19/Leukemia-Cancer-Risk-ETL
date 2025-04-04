@@ -2,8 +2,8 @@
 venv/
 
 #db credentials
-/home/user/leucemia/Leukemia-Cancer-Risk-ETL/credentials.json
-/home/user/leucemia/Leukemia-Cancer-Risk-ETL/credentialsdb.json
+credentials.json
+credentialsdb.json
 
 # vscode files
 .vscode/
