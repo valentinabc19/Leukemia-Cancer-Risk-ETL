@@ -2,7 +2,8 @@
 venv/
 
 #db credentials
-notebooks/credentials.json
+credentials.json
+credentialsdb.json
 
 # vscode files
 .vscode/
