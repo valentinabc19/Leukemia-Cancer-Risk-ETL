@@ -28,7 +28,7 @@ def extract_data():
     db_password = credentials["db_password"]
     
     engine = create_engine(f"postgresql://{db_user}:{db_password}@{db_host}:5432/{db_name}")
-    query = "SELECT * FROM leukemia_clean_data_positive"
+    query = "SELECT * FROM leukemia_clean_data"
     df = pd.read_sql(query, engine)
     
     return df
