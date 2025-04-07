@@ -3,7 +3,6 @@ import os
 import json
 import pandas as pd
 from sqlalchemy import create_engine
-import psycopg2
 from typing import Dict, Any
 
 
@@ -52,22 +51,13 @@ def extract_medical_history(df: pd.DataFrame) -> pd.DataFrame:
         'genetic_mutation', 'family_history', 'smoking_status',
         'alcohol_consumption', 'radiation_exposure', 'infection_history',
         'chronic_illness', 'immune_disorders'
-    ]].copy().rename(columns={
-        'genetic_mutation': 'Genetic_Mutation',
-        'family_history': 'Family_History',
-        'smoking_status': 'Smoking_Status',
-        'alcohol_consumption': 'Alcohol_Consumption',
-        'radiation_exposure': 'Radiation_Exposure',
-        'infection_history': 'Infection_History',
-        'chronic_illness': 'Chronic_Illness',
-        'immune_disorders': 'Immune_Disorders'
-    })
+    ]]
     
     medical_history = medical_history.drop_duplicates().fillna('Unknown')
     medical_history.reset_index(drop=True, inplace=True)
-    medical_history['MedicalHistoryId'] = medical_history.index + 1
+    medical_history['medicalhistoryid'] = medical_history.index + 1
     
-    return medical_history[['MedicalHistoryId'] + medical_history.columns[:-1].tolist()]
+    return medical_history[['medicalhistoryid'] + medical_history.columns[:-1].tolist()]
 
 
 def extract_region(df: pd.DataFrame) -> pd.DataFrame:
@@ -83,8 +73,8 @@ def extract_region(df: pd.DataFrame) -> pd.DataFrame:
     """
     region = df[['country']].copy().drop_duplicates()
     region.reset_index(drop=True, inplace=True)
-    region['RegionId'] = region.index + 1
-    return region[['RegionId', 'country']]
+    region['regionid'] = region.index + 1
+    return region[['regionid', 'country']]
 
 
 def extract_leukemia_facts(df: pd.DataFrame, patient_ids: Dict[Any, int], region_ids: Dict[str, int]) -> pd.DataFrame:
@@ -94,20 +84,12 @@ def extract_leukemia_facts(df: pd.DataFrame, patient_ids: Dict[Any, int], region
         'id', 'country', 'wbc_count', 'rbc_count', 'platelet_count',
         'hemoglobin_level', 'bone_marrow_blasts', 'bmi', 'leukemia_status'
     ]].copy().rename(columns={
-        'id': 'PatientId',
-        'country': 'Country',
-        'wbc_count': 'WBC_Count',
-        'rbc_count': 'RBC_Count',
-        'platelet_count': 'Platelet_Count',
-        'hemoglobin_level': 'Hemoglobin_level',
-        'bone_marrow_blasts': 'Bone_Marrow_Blasts',
-        'bmi': 'BMI',
-        'leukemia_status': 'Leukemia_Status'
+        'id': 'patient_id'
     })
     
-    facts['PatientId'] = facts['PatientId'].map(patient_ids)
-    facts['RegionId'] = facts['Country'].map(region_ids)
-    return facts.drop(columns=['Country'])
+    facts['patient_id'] = facts['patient_id'].map(patient_ids)
+    facts['regionid'] = facts['country'].map(region_ids)
+    return facts.drop(columns=['country'])
 
 
 def extract_patient_info(df: pd.DataFrame, medical_history_ids: Dict[Any, int]) -> pd.DataFrame:
@@ -131,14 +113,10 @@ def extract_patient_info(df: pd.DataFrame, medical_history_ids: Dict[Any, int]) 
     patient_info = df[[
         'id', 'age', 'gender', 'socioeconomic_status', 'urban_rural', 'medical_key'
     ]].copy().rename(columns={
-        'id': 'Patient_id',
-        'age': 'Age',
-        'gender': 'Gender',
-        'urban_rural': 'Urban_Rural',
-        'socioeconomic_status': 'Socioeconomic_Status'
+        'id': 'patient_id'
     })
     
-    patient_info['MedicalHistoryId'] = patient_info['medical_key'].map(medical_history_ids)
+    patient_info['medicalhistoryid'] = patient_info['medical_key'].map(medical_history_ids)
     return patient_info.drop(columns=['medical_key'])
 
 
@@ -163,18 +141,18 @@ def process_dimensions(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
          'chronic_illness', 'immune_disorders']
     ].astype(str).apply(lambda x: '|'.join(x), axis=1)
     
-    medical_history_ids = dict(zip(medical_keys.unique(), dim_medical['MedicalHistoryId']))
+    medical_history_ids = dict(zip(medical_keys.unique(), dim_medical['medicalhistoryid']))
     patient_ids = dict(zip(df['id'], df['id'])) 
-    region_ids = dict(zip(dim_region['country'], dim_region['RegionId']))
+    region_ids = dict(zip(dim_region['country'], dim_region['regionid']))
 
     dim_patient = extract_patient_info(df, medical_history_ids)
     fact_leukemia = extract_leukemia_facts(df, patient_ids, region_ids)
     
     return {
-        'Dim_MedicalHistory': dim_medical,
+        'Fact_Leukemia': fact_leukemia,
         'Dim_Region': dim_region,
         'Dim_PatientInfo': dim_patient,
-        'Fact_Leukemia': fact_leukemia
+        'Dim_MedicalHistory': dim_medical,
     }
 
 

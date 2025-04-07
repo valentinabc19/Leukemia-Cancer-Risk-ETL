@@ -5,42 +5,42 @@ CREATE DATABASE leukemia_analysisdm;
 
 CREATE TABLE Dim_MedicalHistory (
     MedicalHistoryId SERIAL PRIMARY KEY,
-    Family_History VARCHAR(255),
-    Smoking_Status VARCHAR(255),
-    Alcohol_Consumption VARCHAR(255),
-    Radiation_Exposure VARCHAR(255),
-    Infection_History VARCHAR(255),
-    Chronic_Illness VARCHAR(255),
-    Immune_Disorders VARCHAR(255),
-    Genetic_Mutation VARCHAR(255)
+    family_history VARCHAR(255),
+    smoking_status VARCHAR(255),
+    alcohol_consumption VARCHAR(255),
+    radiation_exposure VARCHAR(255),
+    infection_history VARCHAR(255),
+    chronic_illness VARCHAR(255),
+    immune_disorders VARCHAR(255),
+    genetic_mutation VARCHAR(255)
 );
 
 -- Create Dim_Region table
 CREATE TABLE Dim_Region (
     RegionId SERIAL PRIMARY KEY,
-    Country VARCHAR(255)
+    country VARCHAR(255)
 );
 
 -- Create Dim_PatientInfo table
 CREATE TABLE Dim_PatientInfo (
     Patient_id SERIAL PRIMARY KEY,
     MedicalHistoryId INT REFERENCES Dim_MedicalHistory(MedicalHistoryId),
-    Age INT,
-    Gender VARCHAR(50),
-    Socioeconomic_Status VARCHAR(255),
-    Urban_Rural VARCHAR(50)
+    age INT,
+    gender VARCHAR(50),
+    socioeconomic_status VARCHAR(255),
+    urban_rural VARCHAR(50)
 );
 
 -- Create Fact_Leukemia table (corrected name from Fact_Lexkemia)
 CREATE TABLE Fact_Leukemia (
-    PatientId INT REFERENCES Dim_PatientInfo(Patient_id),
+    Patient_Id INT REFERENCES Dim_PatientInfo(Patient_id),
     RegionId INT REFERENCES Dim_Region(RegionId),
-    Leukemia_Status VARCHAR(255),  -- Corrected from Lexkemia_Status
-    WBC_Count FLOAT,              -- Corrected from WBC_Countsort
-    RBC_Count FLOAT,              -- Corrected from RBC_Countsort
-    Platelet_Count FLOAT,         -- Corrected from Platelet_Countsort
+    Leukemia_Status VARCHAR(255),
+    WBC_Count FLOAT, 
+    RBC_Count FLOAT,
+    Platelet_Count FLOAT,
     Hemoglobin_level FLOAT,
-    Bone_Marrow_Blasts FLOAT,     -- Corrected from Bone_Marrow_Blasts
+    Bone_Marrow_Blasts FLOAT,
     BMI FLOAT,
     PRIMARY KEY (PatientId, RegionId)
 );
