@@ -9,27 +9,21 @@ import sys
 sys.path.append("/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/airflow/fuctions")
 from etl import process_dimensions
 
+default_args={
+    'owner': 'airflow',
+    'start_date': datetime(2025, 4, 1),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+}
+
 
 with DAG(
     'leukemia_transform_dag',
-    start_date=datetime(2025, 4, 1),
-    schedule_interval='@daily',
+    default_args=default_args,
+    schedule_interval=None,
     catchup=False,
-    default_args={
-        'owner': 'airflow',
-        'retries': 3,
-        'retry_delay': timedelta(minutes=5),
-    }
 ) as dag:
-
-    wait_for_extract = ExternalTaskSensor(
-        task_id='wait_for_extract',
-        external_dag_id='leukemia_extract_dag',
-        external_task_id='extract_leukemia_data',
-        timeout=600,
-        poke_interval=60,
-    )
-
+    
     def transform_task(): 
         df = pd.read_csv('/tmp/leukemia_raw_data.csv')
         dimensions = process_dimensions(df)
@@ -41,5 +35,3 @@ with DAG(
         task_id='process_leukemia_dimensions',
         python_callable=transform_task,
     )
-
-    wait_for_extract >> transform_operation

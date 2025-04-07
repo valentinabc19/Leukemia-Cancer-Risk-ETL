@@ -6,16 +6,19 @@ import sys
 sys.path.append("/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/airflow/fuctions")
 from etl import extract_data
 
+default_args={
+    'owner': 'airflow',
+    'start_date': datetime(2025, 4, 1),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+}
+
 with DAG(
     'leukemia_extract_dag',
-    start_date=datetime(2025, 4, 1),
-    schedule_interval='@daily',
-    catchup=False,
-    default_args={
-        'owner': 'airflow',
-        'retries': 3,
-        'retry_delay': timedelta(minutes=5),
-    }
+    default_args=default_args,
+    schedule_interval=None,
+    catchup=False
+
 ) as dag:
 
     def extract_task():

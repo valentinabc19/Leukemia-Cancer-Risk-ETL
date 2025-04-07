@@ -3,6 +3,7 @@ import os
 import json
 import pandas as pd
 from sqlalchemy import create_engine
+import psycopg2
 from typing import Dict, Any
 
 
@@ -11,16 +12,16 @@ def extract_data():
     """ Extract data of the leukemia patients from the database in PostgreSQL."""
 
     try:
-        os.chdir("/home/user/leucemia/Leukemia-Cancer-Risk-ETL/")
+        os.chdir("../../Leukemia-Cancer-Risk-ETL")
     except FileNotFoundError:
         print("""
-            FileNotFoundError - Puede que el directorio no exista o no estas ubicad@ en la ruta especificada.
+            FileNotFoundError - The directory may not exist or you are not located in the specified path.
             """)
     os.chdir("..")
     print(os.getcwd())
 
-    with open("Leukemia-Cancer-Risk-ETL/credentials.json", "r", encoding = "utf-8") as f:
-        credentials = json.load(f)
+    with open("Leukemia-Cancer-Risk-ETL/credentials.json", "r", encoding="utf-8") as file:
+        credentials = json.load(file)
 
     db_host = credentials["db_host"]
     db_name = credentials["db_name"]
@@ -29,7 +30,8 @@ def extract_data():
     
     engine = create_engine(f"postgresql://{db_user}:{db_password}@{db_host}:5432/{db_name}")
     query = "SELECT * FROM leukemia_clean_data"
-    df = pd.read_sql(query, engine)
+    with engine.connect() as conn:
+        df = pd.read_sql(sql=query, con=conn.connection)
     
     return df
 
@@ -79,23 +81,28 @@ def extract_region(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         Processed DataFrame for Dim_Region
     """
-    region = df[['Country']].copy().drop_duplicates()
+    region = df[['country']].copy().drop_duplicates()
     region.reset_index(drop=True, inplace=True)
     region['RegionId'] = region.index + 1
-    return region[['RegionId', 'Country']]
+    return region[['RegionId', 'country']]
 
 
 def extract_leukemia_facts(df: pd.DataFrame, patient_ids: Dict[Any, int], region_ids: Dict[str, int]) -> pd.DataFrame:
 
     """Extracts facts using your actual column names"""
     facts = df[[
-        'Patient_ID', 'Country', 'WBC_Count', 'RBC_Count', 'Platelet_Count',
-        'Hemoglobin_Level', 'Bone_Marrow_Blasts', 'BMI', 'Leukemia_Status'
+        'id', 'country', 'wbc_count', 'rbc_count', 'platelet_count',
+        'hemoglobin_level', 'bone_marrow_blasts', 'bmi', 'leukemia_status'
     ]].copy().rename(columns={
-        'Patient_ID': 'PatientId',
-        'Hemoglobin_Level': 'Hemoglobin_level',
-        'Bone_Marrow_Blasts': 'Bone_Marrow_Blasts',
-        'Leukemia_Status': 'Leukemia_Status'
+        'id': 'PatientId',
+        'country': 'Country',
+        'wbc_count': 'WBC_Count',
+        'rbc_count': 'RBC_Count',
+        'platelet_count': 'Platelet_Count',
+        'hemoglobin_level': 'Hemoglobin_level',
+        'bone_marrow_blasts': 'Bone_Marrow_Blasts',
+        'bmi': 'BMI',
+        'leukemia_status': 'Leukemia_Status'
     })
     
     facts['PatientId'] = facts['PatientId'].map(patient_ids)
@@ -116,17 +123,19 @@ def extract_patient_info(df: pd.DataFrame, medical_history_ids: Dict[Any, int]) 
         Processed DataFrame for Dim_PatientInfo
     """
     df['medical_key'] = df[
-        ['Genetic_Mutation', 'Family_History', 'Smoking_Status',
-         'Alcohol_Consumption', 'Radiation_Exposure', 'Infection_History',
-         'Chronic_Illness', 'Immune_Disorders']
+        ['genetic_mutation', 'family_history', 'smoking_status',
+         'alcohol_consumption', 'radiation_exposure', 'infection_history',
+         'chronic_illness', 'immune_disorders']
     ].astype(str).apply(lambda x: '|'.join(x), axis=1)
     
     patient_info = df[[
-        'Patient_ID', 'Age', 'Gender', 'Socioeconomic_Status', 'Urban_Rural', 'medical_key'
+        'id', 'age', 'gender', 'socioeconomic_status', 'urban_rural', 'medical_key'
     ]].copy().rename(columns={
-        'Patient_ID': 'Patient_id',
-        'Urban_Rural': 'Urban_Rural',
-        'Socioeconomic_Status': 'Socioeconomic_Status'
+        'id': 'Patient_id',
+        'age': 'Age',
+        'gender': 'Gender',
+        'urban_rural': 'Urban_Rural',
+        'socioeconomic_status': 'Socioeconomic_Status'
     })
     
     patient_info['MedicalHistoryId'] = patient_info['medical_key'].map(medical_history_ids)
@@ -149,14 +158,14 @@ def process_dimensions(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
     dim_region = extract_region(df)
     
     medical_keys = df[
-        ['Genetic_Mutation', 'Family_History', 'Smoking_Status',
-         'Alcohol_Consumption', 'Radiation_Exposure', 'Infection_History',
-         'Chronic_Illness', 'Immune_Disorders']
+        ['genetic_mutation', 'family_history', 'smoking_status',
+         'alcohol_consumption', 'radiation_exposure', 'infection_history',
+         'chronic_illness', 'immune_disorders']
     ].astype(str).apply(lambda x: '|'.join(x), axis=1)
     
     medical_history_ids = dict(zip(medical_keys.unique(), dim_medical['MedicalHistoryId']))
-    patient_ids = dict(zip(df['Patient_ID'], df['Patient_ID']))  # Assuming Patient_ID is unique
-    region_ids = dict(zip(dim_region['Country'], dim_region['RegionId']))
+    patient_ids = dict(zip(df['id'], df['id'])) 
+    region_ids = dict(zip(dim_region['country'], dim_region['RegionId']))
 
     dim_patient = extract_patient_info(df, medical_history_ids)
     fact_leukemia = extract_leukemia_facts(df, patient_ids, region_ids)
@@ -279,5 +288,5 @@ def main(data_path: str, creds_path: str) -> None:
         raise
 
 
-DATA_FILE = "/home/user/leucemia/Leukemia-Cancer-Risk-ETL/data/biased_leukemia_dataset.csv"
-CREDS_FILE = "/home/user/leucemia/Leukemia-Cancer-Risk-ETL/credentialsdb.json"
+DATA_FILE = "/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/data/biased_leukemia_dataset.csv"
+CREDS_FILE = "/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/credentialsdb.json"
