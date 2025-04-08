@@ -11,7 +11,7 @@ def extract_data():
     """ Extract data of the leukemia patients from the database in PostgreSQL."""
 
     try:
-        os.chdir("../Leukemia-Cancer-Risk-ETL")
+        os.chdir("../../Leukemia-Cancer-Risk-ETL")
     except FileNotFoundError:
         print("""
             FileNotFoundError - The directory may not exist or you are not located in the specified path.
