@@ -67,10 +67,10 @@ with DAG(
         creds = load_db_credentials(creds_path)
 
         dimensions_dict = {
-            'Dim_MedicalHistory': pd.read_csv('/tmp/Dim_MedicalHistory.csv'),
-            'Dim_Region': pd.read_csv('/tmp/Dim_Region.csv'),
+            'Fact_Leukemia': pd.read_csv('/tmp/Fact_Leukemia.csv'),
             'Dim_PatientInfo': pd.read_csv('/tmp/Dim_PatientInfo.csv'),
-            'Fact_Leukemia': pd.read_csv('/tmp/Fact_Leukemia.csv')
+            'Dim_MedicalHistory': pd.read_csv('/tmp/Dim_MedicalHistory.csv'),
+            'Dim_Region': pd.read_csv('/tmp/Dim_Region.csv')
         }
 
         export_to_postgres(dimensions_dict, creds)

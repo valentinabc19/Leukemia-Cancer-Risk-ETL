@@ -5,14 +5,14 @@ CREATE DATABASE leukemia_analysisdm;
 
 CREATE TABLE Dim_MedicalHistory (
     MedicalHistoryId SERIAL PRIMARY KEY,
-    family_history VARCHAR(255),
-    smoking_status VARCHAR(255),
-    alcohol_consumption VARCHAR(255),
-    radiation_exposure VARCHAR(255),
-    infection_history VARCHAR(255),
-    chronic_illness VARCHAR(255),
-    immune_disorders VARCHAR(255),
-    genetic_mutation VARCHAR(255)
+    family_history INT,
+    smoking_status INT,
+    alcohol_consumption INT,
+    radiation_exposure INT,
+    infection_history INT,
+    chronic_illness INT,
+    immune_disorders INT,
+    genetic_mutation INT
 );
 
 -- Create Dim_Region table
@@ -35,13 +35,14 @@ CREATE TABLE Dim_PatientInfo (
 CREATE TABLE Fact_Leukemia (
     Patient_Id INT REFERENCES Dim_PatientInfo(Patient_id),
     RegionId INT REFERENCES Dim_Region(RegionId),
-    Leukemia_Status VARCHAR(255),
+    Leukemia_Status INT,
+    Living_Status INT,
     WBC_Count FLOAT, 
     RBC_Count FLOAT,
     Platelet_Count FLOAT,
     Hemoglobin_level FLOAT,
     Bone_Marrow_Blasts FLOAT,
     BMI FLOAT,
-    PRIMARY KEY (PatientId, RegionId)
+    PRIMARY KEY (Patient_Id, RegionId)
 );
 

@@ -82,7 +82,7 @@ def extract_leukemia_facts(df: pd.DataFrame, patient_ids: Dict[Any, int], region
     """Extracts facts using your actual column names"""
     facts = df[[
         'id', 'country', 'wbc_count', 'rbc_count', 'platelet_count',
-        'hemoglobin_level', 'bone_marrow_blasts', 'bmi', 'leukemia_status'
+        'hemoglobin_level', 'bone_marrow_blasts', 'bmi', 'leukemia_status', 'living_status'
     ]].copy().rename(columns={
         'id': 'patient_id'
     })
