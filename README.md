@@ -7,7 +7,7 @@
 
 * [Natalia Moreno Montoya](https://github.com/natam226)
 
-## Descripction
+## Description
 
 This project used a dataset extracted from [Kaggle](https://www.kaggle.com/datasets/ankushpanday1/leukemia-cancer-risk-prediction-dataset?resource=download) containing leukemia-related health data, which includes 143,194 patient records from 22 different countries, with biases in demographic distribution, socioeconomic status, and leukemia prevalence. This dataset has intentional biases to reflect real-world health disparities.
 
@@ -45,7 +45,25 @@ The dependencies used in python are in a `requirements.txt` file
 - **urban_rural**: indica si el paciente vive en una zona rural (”Rural”) o urbana (”Urban”).
 - **leukemia_status**: indica si el paciente tiene leucemia o no. Se establece como “Negative” (negativo) o “Positive” (positivo).
 
-## Run the project
+
+## 📂 Project Structure
+
+```
+Leukemia-Cancer-Risk-ETL/
+├── airflow/                  # Airflow-related files
+├── dags/                      # Airflow DAG
+│   ├── dag_etl.py
+│   ├── etl.py
+├── api/                      # API data extraction and EDA
+├── dashboard/
+├── data/                     # Data storaged
+├── notebooks/                # Jupyter notebooks
+├── venv/                     # Virtual environment
+├── .gitignore                # Git ignore file
+└── requirements.txt          # Project dependencies
+```
+
+## 🛠️ Setup Instructions
 
 ### Clone the repository
 
@@ -58,13 +76,9 @@ git clone https://github.com/valentinabc19/Leukemia-Cancer-Risk-ETL.git
 > From this point on all processes are done in Visual Studio Code
 
 ### Create Virtual Environment
-To create a virtual environment you should use the following command
 ```bash
 python -m venv venv
-```
-To activate the virtual environment you should move to the `venv/Scripts` folder an run the following command to activate the virtual environment
-```bash
-activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 ### Credentials
@@ -79,6 +93,7 @@ To make a connection to the database you must have the database credentials in a
     "db_port": "DB_PORT"    
 }
 ```
+Ensure this file is included in `.gitignore`.
 
 ### Installing the dependencies
 The necessary dependencies are stored in a file named requirements.txt. To install the dependencies you can use the command
@@ -86,20 +101,45 @@ The necessary dependencies are stored in a file named requirements.txt. To insta
 pip install requirements.txt
 ```
 
-### Run the notebooks
-You execute the two notebooks by the following order:
+### 4. Configure Airflow
 
-1. 001_conn_and_data_load.ipynb
-2. 002_EDA.ipynb
+```bash
+export AIRFLOW_HOME=$(pwd)/airflow
+airflow db init
+airflow webserver --port 8080
+airflow scheduler
+```
 
-The correct python kernel must be chosen to run correctly, the correct python kernel is the one stablished in the virtual environment.
+## 🚀 Usage
 
-### Connecting the database with PowerBI
+### Access Airflow UI
 
-1. Open PowerBI desktop and create a new file. Select *Get data* and choose the way you want to import the data. In this case is going to be *PostgreSQL Database*.
+Open your browser and go to [http://localhost:8080](http://localhost:8080).  
+Default credentials:  
+- **Username**: `airflow`  
+- **Password**: `airflow`
 
-2. Insert the PostgreSQL server and database name, and press *Accept*.
+### Trigger the DAG
 
-3. Fill in the fields with the credentials, and press *Accept*.
+- Locate the `etl_pipeline` DAG.
+- Turn it **On** and click **"Trigger DAG"**.
 
-4. When you're connected to the database you will be able to select the table with the clean data to start creating the dashboard. 
+### Monitor the Pipeline
+
+- Use the Airflow UI to track task status.
+- Logs are available under `airflow/logs/`.
+
+### Output
+
+- Final dataset saved in PostgreSQL under `data_pipeline`.
+- If implemented, data is uploaded to Google Drive.
+
+---
+
+## 📝 Pipeline Tasks
+
+The `etl_pipeline` DAG includes:
+
+- `extract_task`
+- `transform_task`
+- `load_task`

@@ -2,6 +2,20 @@ import requests
 import pandas as pd
 
 def get_country_codes():
+    """
+    Retrieve a list of valid country ISO codes from the World Bank API.
+
+    The function sends a request to the World Bank's country endpoint and extracts
+    all country codes (`id` field) for countries with a defined region (i.e., excluding
+    aggregates or undefined regional entities such as "NA").
+
+    Returns
+    -------
+    list of str
+        A list of ISO 3166-1 alpha-3 country codes.
+        If the request fails or the response is invalid, an empty list is returned.
+    """
+
     url = "http://api.worldbank.org/v2/country?format=json&per_page=300"
     response = requests.get(url)
     if response.status_code == 200:
@@ -12,6 +26,24 @@ def get_country_codes():
     return []
 
 def get_world_bank_data(indicators_dict, start_year=2000, end_year=2025):
+    """
+    Fetch World Bank data for selected indicators and years.
+
+    Parameters
+    ----------
+    indicators_dict : dict
+        Dictionary with indicator codes as keys and readable names as values.
+    start_year : int
+        First year to fetch.
+    end_year : int
+        Last year to fetch.
+
+    Returns
+    -------
+    pd.DataFrame
+        Pivoted DataFrame with countries and years as rows and indicators as columns.
+    """
+
     country_codes = get_country_codes()
     countries = ';'.join(country_codes)
     base_url = "http://api.worldbank.org/v2/country/{}/indicator/{}?format=json&date={}:{}&per_page=1000&page={}"
@@ -43,25 +75,22 @@ def get_world_bank_data(indicators_dict, start_year=2000, end_year=2025):
     df_pivot = df.pivot_table(index=['Country', 'Year'], columns='Indicator', values='Value').reset_index()
     return df_pivot
 
-# Indicadores requeridos
+
 indicators = {
     "EN.POP.SLUM.UR.ZS": "Population living in slums",
     "SI.POV.NAHC": "Poverty headcount ratio at national poverty lines",
-    "NY.GDP.PCAP.CD": "GDP per capita (PIB)",
-    "SL.AGR.EMPL.ZS": "Employment in agriculture (% of total employment)",
+    "NY.GDP.PCAP.CD": "GDP per capita",
+    "SL.AGR.EMPL.ZS": "Employment in agriculture",
     "EN.ATM.PM25.MC.M3": "PM2.5 air pollution (mean annual exposure)",
     "EG.ELC.NUCL.ZS": "Electricity production from nuclear sources",
     "SN.ITK.DEFC.ZS": "Prevalence of undernourishment",
-    "FI.FSI.FOOD.ZS": "Prevalence of moderate or severe food insecurity",
+    "SN.ITK.MSFI.ZS": "Prevalence of moderate or severe food insecurity",
     "SH.ALC.PCAP.LI": "Total alcohol consumption per capita (liters of pure alcohol)",
-    "EN.ATM.CO2E.PC": "Carbon dioxide (CO2) emissions per capita",
-    "AG.LND.IRIG.AG.ZS": "Agricultural irrigated land",
+    "EN.GHG.CO2.PC.CE.AR5": "Carbon dioxide (CO2) emissions per capita",
     "AG.CON.FERT.PT.ZS": "Fertilizer consumption"
 }
 
-# Obtener datos
 df = get_world_bank_data(indicators)
 
-# Guardar en CSV
-df.to_csv("world_bank_data.csv", index=False)
+df.to_csv("data/world_bank_data.csv", index=False)
 print("Datos guardados en world_bank_data.csv")

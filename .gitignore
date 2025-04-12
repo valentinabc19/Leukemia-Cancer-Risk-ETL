@@ -2,7 +2,13 @@
 venv/
 
 #db credentials
-notebooks/credentials.json
+credentials.json
+credentialsdb.json
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # vscode files
 .vscode/
