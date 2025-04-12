@@ -5,5 +5,7 @@ venv/
 credentials.json
 credentialsdb.json
 
+__pycache__/
+
 # vscode files
 .vscode/
