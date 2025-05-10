@@ -1,5 +1,12 @@
-from api.extract_data import get_world_bank_data
 import pandas as pd
+import os
+import sys
+
+ROOT_DIR = root_dir = os.path.abspath(os.path.join(__file__, "../../../"))
+if root_dir not in sys.path:
+	sys.path.append(root_dir)      
+
+from api.extract_data import get_world_bank_data
 
 def api_data_extraction() -> pd.DataFrame:
     """
@@ -21,6 +28,8 @@ def api_data_extraction() -> pd.DataFrame:
     }
 
     data = get_world_bank_data(indicators)
+
+    os.chdir(root_dir)
 
     data.to_csv("data/world_bank_data.csv", index=False)
 

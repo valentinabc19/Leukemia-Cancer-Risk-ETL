@@ -151,8 +151,8 @@ def process_dimensions(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
         
     except Exception as e:
         print(f"ETL pipeline failed: {str(e)}")
-        raise'''
+        raise
 
 
-'''DATA_FILE = "/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/data/biased_leukemia_dataset.csv"
+DATA_FILE = "/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/data/biased_leukemia_dataset.csv"
 CREDS_FILE = "/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/credentialsdb.json"'''
