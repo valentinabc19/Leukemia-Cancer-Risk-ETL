@@ -1,253 +1,167 @@
+import great_expectations as gx
 import pandas as pd
-from typing import Dict
-from great_expectations.core import ExpectationSuiteValidationResult, ExpectationSuite
-from great_expectations.validator.validator import Validator
-from great_expectations.execution_engine.pandas_execution_engine import PandasExecutionEngine
-from great_expectations.core.batch import Batch
 
+context = gx.get_context(mode="ephemeral")
 
-def _get_validator(df: pd.DataFrame, suite_name: str) -> Validator:
-    """
-    Construye un Validator sin necesidad de un DataContext completo.
+def configure_gx():
+    """Configure Great Expectations with a single context and pandas data source."""
+    data_source = context.data_sources.add_pandas(name="pandas_source")
+    data_asset = data_source.add_dataframe_asset(name="dataframe_asset")
+    batch_definition = data_asset.add_batch_definition_whole_dataframe(name="batch_definition")
+    return batch_definition
 
-    Args:
-        df: DataFrame de pandas a validar
-        suite_name: Nombre del conjunto de expectativas
-
-    Returns:
-        Validator configurado para el DataFrame
-
-    Raises:
-        TypeError: Si df no es un DataFrame de pandas
-    """
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("El argumento 'df' debe ser un DataFrame de pandas.")
-
-    engine = PandasExecutionEngine()
-
-    batch = Batch(
-        data=df
-    )
-
-    suite = ExpectationSuite(suite_name)
-
-    return Validator(
-        execution_engine=engine,
-        batches=[batch],
-        expectation_suite=suite,
-    )
-
-
-def validate_dim_patient_info(df: pd.DataFrame) -> ExpectationSuiteValidationResult:
-    """
-    Valida el DataFrame Dim_PatientInfo según reglas específicas.
+def setup_suite(suite_name):
+    """Set  suite, and validation definition for a DataFrame."""
     
-    Args:
-        df: DataFrame con datos de pacientes
-        
-    Returns:
-        Resultado de la validación
-        
-    Raises:
-        ValueError: Si el DataFrame está vacío o es None
-    """
+    suite = gx.ExpectationSuite(name=suite_name)
+    suite = context.suites.add(suite)
+    return suite
+
+def add_dim_patient_info_expectations(suite, df):
+    """Add expectations for Dim_PatientInfo DataFrame."""
     if df is None or df.empty:
         raise ValueError("El DataFrame para Dim_PatientInfo está vacío o es None.")
     
-    validator = _get_validator(df, "Dim_PatientInfo")
+    suite.add_expectation(gx.expectations.ExpectColumnToExist(column="patient_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="patient_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeUnique(column="patient_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnToExist(column="medical_history_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="medical_history_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeInSet(
+        column="gender", value_set=["Male", "Female"]
+    ))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeBetween(
+        column="age", min_value=0, max_value=110
+    ))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeInSet(
+        column="socioeconomic_status", value_set=["Low", "Medium", "High"]
+    ))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeInSet(
+        column="urban_rural", value_set=["Urban", "Rural"]
+    ))
+    return suite
 
-    # Validaciones básicas de identificación
-    validator.expect_column_to_exist("patient_id")
-    validator.expect_column_values_to_not_be_null("patient_id")
-    validator.expect_column_values_to_be_unique("patient_id")
-    
-    # Validaciones de dominio
-    validator.expect_column_values_to_be_in_set("gender", {"Male", "Female", "Other", "Unknown"})
-    validator.expect_column_values_to_be_between("age", min_value=0, max_value=120)
-    
-    # Validaciones de categorías específicas
-    validator.expect_column_values_to_be_in_set(
-        "socioeconomic_status", 
-        {"Low", "Medium", "High", "Unknown"}
-    )
-    validator.expect_column_values_to_be_in_set(
-        "urban_rural", 
-        {"Urban", "Rural", "Semi-Urban", "Unknown"}
-    )
-
-    return validator.validate()
-
-
-def validate_dim_medical_history(df: pd.DataFrame) -> ExpectationSuiteValidationResult:
-    """
-    Valida el DataFrame Dim_MedicalHistory según reglas específicas.
-    
-    Args:
-        df: DataFrame con historiales médicos
-        
-    Returns:
-        Resultado de la validación
-        
-    Raises:
-        ValueError: Si el DataFrame está vacío o es None
-    """
+def add_dim_medical_history_expectations(suite, df):
+    """Add expectations for Dim_MedicalHistory DataFrame."""
     if df is None or df.empty:
         raise ValueError("El DataFrame para Dim_MedicalHistory está vacío o es None.")
     
-    validator = _get_validator(df, "Dim_MedicalHistory")
-
-    # Validaciones de identificador único
-    validator.expect_column_to_exist("medical_history_id")
-    validator.expect_column_values_to_not_be_null("medical_history_id")
-    validator.expect_column_values_to_be_unique("medical_history_id")
+    suite.add_expectation(gx.expectations.ExpectColumnToExist(column="medical_history_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="medical_history_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeUnique(column="medical_history_id"))
     
-    # Validaciones de relaciones
-    validator.expect_column_to_exist("patient_id")
-    validator.expect_column_values_to_not_be_null("patient_id")
-
-    # Columnas binarias
-    binary_cols = {
-        "family_history", "smoking_status", "alcohol_consumption", 
-        "radiation_exposure", "infection_history", "chronic_illness", 
+    binary_cols = [
+        "family_history", "smoking_status", "alcohol_consumption",
+        "radiation_exposure", "infection_history", "chronic_illness",
         "immune_disorders", "genetic_mutation"
-    }
+    ]
     
-    # Solo validar columnas que existen en el DataFrame
-    existing_binary_cols = [col for col in binary_cols if col in df.columns]
-    
-    for col in existing_binary_cols:
-        validator.expect_column_values_to_be_in_set(col, {0, 1})
+    for col in binary_cols:
+        if col in df.columns:
+            suite.add_expectation(gx.expectations.ExpectColumnValuesToBeInSet(
+                column=col, value_set=[0, 1]
+            ))
+    return suite
 
-    
-    return validator.validate()
-
-
-def validate_dim_region(df: pd.DataFrame) -> ExpectationSuiteValidationResult:
-    """
-    Valida el DataFrame Dim_Region según reglas específicas.
-    
-    Args:
-        df: DataFrame con datos regionales
-        
-    Returns:
-        Resultado de la validación
-        
-    Raises:
-        ValueError: Si el DataFrame está vacío o es None
-    """
+def add_dim_region_expectations(suite, df):
+    """Add expectations for Dim_Region DataFrame."""
     if df is None or df.empty:
         raise ValueError("El DataFrame para Dim_Region está vacío o es None.")
-
-    validator = _get_validator(df, "Dim_Region")
-
-    # Validaciones de identificador único
-    validator.expect_column_to_exist("region_id")
-    validator.expect_column_values_to_not_be_null("region_id")
-    validator.expect_column_values_to_be_unique("region_id")
     
-    # Validaciones de país
-    validator.expect_column_to_exist("country")
-    validator.expect_column_values_to_not_be_null("country")
-    validator.expect_column_values_to_match_regex("country", r"^[A-Za-z\s\-\.]+$")
+    suite.add_expectation(gx.expectations.ExpectColumnToExist(column="region_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="region_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeUnique(column="region_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnToExist(column="country"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="country"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToMatchRegex(
+        column="country", regex=r"^[A-Za-z\s\-\.\']+$"
+    ))
+    return suite
 
-    return validator.validate()
-
-
-def validate_fact_leukemia(df: pd.DataFrame) -> ExpectationSuiteValidationResult:
-    """
-    Valida el DataFrame Fact_Leukemia según reglas específicas.
-    
-    Args:
-        df: DataFrame con datos de leucemia
-        
-    Returns:
-        Resultado de la validación
-        
-    Raises:
-        ValueError: Si el DataFrame está vacío o es None
-    """
+def add_fact_leukemia_expectations(suite, df):
+    """Add expectations for Fact_Leukemia DataFrame."""
     if df is None or df.empty:
         raise ValueError("El DataFrame para Fact_Leukemia está vacío o es None.")
-
-    validator = _get_validator(df, "Fact_Leukemia")
-
-    # Validaciones de relaciones
-    validator.expect_column_to_exist("patient_id")
-    validator.expect_column_values_to_not_be_null("patient_id")
-    validator.expect_column_to_exist("region_id")
-    validator.expect_column_values_to_not_be_null("region_id")
     
-    # Validaciones de estado
-    validator.expect_column_values_to_be_in_set("leukemia_status", {0, 1})  # 2 para indeterminado
-    validator.expect_column_values_to_be_in_set("living_status", {0, 1})    # 9 para desconocido
-
-    # Definición de columnas numéricas con sus rangos esperados
-    numeric_columns = {
-        "wbc_count": (0, 100),
-        "rbc_count": (0, 10),
-        "platelet_count": (0, 450000),
-        "hemoglobin_level": (4, 25),
-        "bone_marrow_blasts": (0, 100),
-        "bmi": (10, 50),
-        "fertilizer_consumption": (0, None),
-        "gdp_per_capita": (0, None),
-        "pm25_pollution": (0, None),
-        "undernourishment_rate": (0, 100),
-        "agri_employment_pct": (0, 100),
-        "co2_emissions_per_capita": (0, None),
-        "nuclear_energy_pct": (0, 100),
-        "alcohol_consumption_liters": (0, None)
-    }
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="patient_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="region_id"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeInSet(
+        column="leukemia_status", value_set=[0, 1]
+    ))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeInSet(
+        column="living_status", value_set=[0, 1]
+    ))
     
-    # Validar solo columnas existentes
-    for col, (min_val, max_val) in numeric_columns.items():
+    numeric_cols = [
+        "wbc_countsort", "rbc_countsort", "platelet_countsort", "hemoglobin_level",
+        "bone_marrow_blasts", "bmi", "fertilizer_consumption", "gdp_per_capita",
+        "pm25_pollution", "undernourishment_grade", "agri_employment_pct",
+        "co2_emissions_per_capita", "nuclear_energy_pct", "alcohol_consumption_liters"
+    ]
+    
+    for col in numeric_cols:
         if col in df.columns:
-            validator.expect_column_values_to_be_of_type(col, "float")
-            validator.expect_column_values_to_not_be_null(col)
-            validator.expect_column_values_to_be_between(
-                col, 
-                min_value=min_val, 
-                max_value=max_val
-            )
+            suite.add_expectation(gx.expectations.ExpectColumnValuesToBeOfType(
+                column=col, type_="float"
+            ))
+            suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column=col))
+            suite.add_expectation(gx.expectations.ExpectColumnValuesToBeBetween(
+                column=col, min_value=0
+            ))
+    return suite
 
-    return validator.validate()
+def setup_validation (batch_definition, suite, validation_name):
+    validation_definition = gx.ValidationDefinition(
+        data=batch_definition, suite=suite, name=validation_name
+    )
+    validation_definition = context.validation_definitions.add(validation_definition)
+    return validation_definition
 
+def run_validation(validation_definition, dataframe):
+    """Run validation on the provided dataframe."""
+    batch_parameters = {"dataframe": dataframe}
+    return validation_definition.run(
+        batch_parameters=batch_parameters, 
+        result_format="BOOLEAN_ONLY"
+    )
 
-def validate_all(
-    dataframes: Dict[str, pd.DataFrame]
-) -> Dict[str, ExpectationSuiteValidationResult]:
-    """
-    Valida todos los DataFrames según sus validadores específicos.
+def validate_all_dataframes(df):
+    """Validate all four dataframes and return their results."""
+    # Initialize single context and data source
+    batch_definition = configure_gx()
     
-    Args:
-        dataframes: Diccionario de DataFrames a validar
-        custom_validators: Diccionario opcional con validadores personalizados
-        required_tables: Conjunto de tablas requeridas (si no se proporcionan, se genera error)
-        
-    Returns:
-        Diccionario con resultados de validación
-        
-    Raises:
-        ValueError: Si faltan tablas requeridas o hay tablas no reconocidas
-    """
-    # Validadores por defecto
-    default_validators = {
-        "Dim_PatientInfo": validate_dim_patient_info,
-        "Dim_MedicalHistory": validate_dim_medical_history,
-        "Dim_Region": validate_dim_region,
-        "Fact_Leukemia": validate_fact_leukemia,
+    # Map DataFrame names to expectation functions
+    expectation_functions = {
+        "Dim_PatientInfo": add_dim_patient_info_expectations,
+        "Dim_MedicalHistory": add_dim_medical_history_expectations,
+        "Dim_Region": add_dim_region_expectations,
+        "Fact_Leukemia": add_fact_leukemia_expectations
     }
     
-    # Combinar con validadores personalizados
-    validators = {**default_validators}
+    dataframes = {
+        "Dim_PatientInfo": df['Dim_PatientInfo'],
+        "Dim_MedicalHistory": df['Dim_MedicalHistory'],
+        "Dim_Region": df['Dim_Region'],
+        "Fact_Leukemia": df['Fact_Leukemia']
+    }
     
-    # Ejecutar validaciones
     results = {}
-    for table_name, df in dataframes.items():
-        if table_name in validators:
-            try:
-                results[table_name] = validators[table_name](df)
-            except Exception as e:
-                results[table_name] = str(e)
+    for df_name, dataframe in dataframes.items():
+        # Set up validation for the current DataFrame
+        suite = setup_suite(f"{df_name}_suite")
+        
+        # Add specific expectations
+        expectation_functions[df_name](suite, dataframe)
+        
+        validation_definition = setup_validation(batch_definition, suite, f"{df_name}_validation" )
+        # Run validation and store results
+        results[df_name] = run_validation(validation_definition, dataframe)
     
     return results
+
+def validation_results(df):
+
+    results = validate_all_dataframes(df)
+    for df_name, result in results.items():
+        print(f"Validation results for {df_name}:")
+        print(result)

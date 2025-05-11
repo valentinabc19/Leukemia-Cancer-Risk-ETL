@@ -39,7 +39,7 @@ def load_db_credentials(json_path: str) -> Dict[str, str]:
         raise ValueError(f"Credentials file not found at {json_path}")
     
 
-def export_to_postgres(df_dict: Dict[str, pd.DataFrame], schema: str = None) -> None:
+def export_to_postgres(df_dict: Dict[str, pd.DataFrame], results: Dict[str, pd.DataFrame] ) -> None:
     """
     Exports all DataFrames to PostgreSQL database
     
@@ -71,7 +71,7 @@ def export_to_postgres(df_dict: Dict[str, pd.DataFrame], schema: str = None) -> 
                 df.to_sql(
                     name=table_name.lower(),
                     con=engine,
-                    schema=schema,
+                    schema=None,
                     if_exists='replace',
                     index=False,
                     chunksize=1000,
