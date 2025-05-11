@@ -8,14 +8,12 @@ CREDENTIALS_PATH = os.path.join(ROOT_DIR, "credentials.json")
 
 def extract_data()-> pd.DataFrame:
 
-    """ Extract data of the leukemia patients from the database in PostgreSQL."""
+    """
+    Loads leukemia patient data from a PostgreSQL database using credentials from a JSON file.
 
-    """try:
-        os.chdir("../../Leukemia-Cancer-Risk-ETL")
-    except FileNotFoundError:
-        print("FileNotFoundError - The directory may not exist or you are not located in the specified path.")
-    os.chdir("..")
-    print(os.getcwd())"""
+    Returns:
+        pd.DataFrame: DataFrame containing the extracted data.
+    """
 
     with open(CREDENTIALS_PATH, "r", encoding="utf-8") as file:
         credentials = json.load(file)

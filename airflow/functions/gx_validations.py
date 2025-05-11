@@ -4,21 +4,40 @@ import pandas as pd
 context = gx.get_context(mode="ephemeral")
 
 def configure_gx():
-    """Configure Great Expectations with a single context and pandas data source."""
+    """
+    Sets up the Great Expectations context with a pandas data source and batch definition.
+    
+    Returns:
+        BatchDefinition: A batch definition for the context.
+    """
     data_source = context.data_sources.add_pandas(name="pandas_source")
     data_asset = data_source.add_dataframe_asset(name="dataframe_asset")
     batch_definition = data_asset.add_batch_definition_whole_dataframe(name="batch_definition")
     return batch_definition
 
 def setup_suite(suite_name):
-    """Set  suite, and validation definition for a DataFrame."""
+    """
+    Creates and registers an expectation suite with the given name.
+
+    Args:
+        suite_name: The name of the expectation suite.
+
+    Returns:
+        ExpectationSuite: The initialized and registered suite.
+    """
     
     suite = gx.ExpectationSuite(name=suite_name)
     suite = context.suites.add(suite)
     return suite
 
 def add_dim_patient_info_expectations(suite, df):
-    """Add expectations for Dim_PatientInfo DataFrame."""
+    """
+    Adds expectations for the Dim_PatientInfo DataFrame, including identity and demographic checks.
+    
+    Raises:
+        ValueError: If the DataFrame is None or empty.
+    """
+
     if df is None or df.empty:
         raise ValueError("El DataFrame para Dim_PatientInfo está vacío o es None.")
     
@@ -42,7 +61,13 @@ def add_dim_patient_info_expectations(suite, df):
     return suite
 
 def add_dim_medical_history_expectations(suite, df):
-    """Add expectations for Dim_MedicalHistory DataFrame."""
+    """
+    Adds expectations for the Dim_MedicalHistory DataFrame, validating IDs and binary fields.
+    
+    Raises:
+        ValueError: If the DataFrame is None or empty.
+    """
+
     if df is None or df.empty:
         raise ValueError("El DataFrame para Dim_MedicalHistory está vacío o es None.")
     
@@ -64,7 +89,13 @@ def add_dim_medical_history_expectations(suite, df):
     return suite
 
 def add_dim_region_expectations(suite, df):
-    """Add expectations for Dim_Region DataFrame."""
+    """
+    Adds expectations for the Dim_Region DataFrame, including ID, name, and format checks.
+    
+    Raises:
+        ValueError: If the DataFrame is None or empty.
+    """
+    
     if df is None or df.empty:
         raise ValueError("El DataFrame para Dim_Region está vacío o es None.")
     
@@ -79,7 +110,16 @@ def add_dim_region_expectations(suite, df):
     return suite
 
 def add_fact_leukemia_expectations(suite, df):
-    """Add expectations for Fact_Leukemia DataFrame."""
+    """
+    Adds expectations for the Fact_Leukemia DataFrame.
+
+    Validates required columns, value types, nulls, and acceptable value ranges
+    for medical and contextual features.
+    
+    Raises:
+        ValueError: If the input DataFrame is None or empty.
+    """
+
     if df is None or df.empty:
         raise ValueError("El DataFrame para Fact_Leukemia está vacío o es None.")
     
@@ -135,6 +175,18 @@ def add_fact_leukemia_expectations(suite, df):
     return suite
 
 def setup_validation (batch_definition, suite, validation_name):
+    """
+    Creates and registers a validation definition for a data batch.
+
+    Args:
+        batch_definition: Batch configuration for the validation.
+        suite: Expectation suite to apply.
+        validation_name: Name of the validation run.
+
+    Returns:
+        ValidationDefinition: Configured and registered validation definition.
+    """
+
     validation_definition = gx.ValidationDefinition(
         data=batch_definition, suite=suite, name=validation_name
     )
@@ -142,7 +194,17 @@ def setup_validation (batch_definition, suite, validation_name):
     return validation_definition
 
 def run_validation(validation_definition, dataframe):
-    """Run validation on the provided dataframe."""
+    """
+    Executes a Great Expectations validation on a given DataFrame.
+
+    Args:
+        validation_definition: Configured validation object.
+        dataframe: DataFrame to validate.
+
+    Returns:
+        dict: Validation result in boolean-only format.
+    """
+
     batch_parameters = {"dataframe": dataframe}
     return validation_definition.run(
         batch_parameters=batch_parameters, 
@@ -150,7 +212,23 @@ def run_validation(validation_definition, dataframe):
     )
 
 def validate_all_dataframes(df):
-    """Validate all four dataframes and return their results."""
+    """
+    Validates multiple DataFrames using predefined Great Expectations suites.
+
+    Applies predefined expectation suites to each DataFrame, executes validations, 
+    and returns the results for:
+    - Dim_PatientInfo
+    - Dim_MedicalHistory
+    - Dim_Region
+    - Fact_Leukemia
+
+    Args:
+        df: A dictionary containing the four DataFrames to validate, with keys:
+        'Dim_PatientInfo', 'Dim_MedicalHistory', 'Dim_Region', 'Fact_Leukemia'.
+
+    Returns:
+        dict: A dictionary mapping each DataFrame name to its corresponding validation result."""
+     
     batch_definition = configure_gx()
     
     expectation_functions = {

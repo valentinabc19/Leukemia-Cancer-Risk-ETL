@@ -12,15 +12,12 @@ def api_data_extraction() -> pd.DataFrame:
     """
     Function to extract data from an API endpoint or load it from a local file if it already exists.
     """
-    # Ruta del archivo CSV
     file_path = os.path.join(ROOT_DIR, "data", "world_bank_data.csv")
 
-    # Verificar si el archivo ya existe
     if os.path.exists(file_path):
         print(f"File {file_path} already exists. Loading data from the file.")
         return pd.read_csv(file_path)
 
-    # Si el archivo no existe, realizar la extracción desde la API
     print(f"File {file_path} does not exist. Extracting data from the API.")
     indicators = {
         "EN.POP.SLUM.UR.ZS": "Population living in slums",

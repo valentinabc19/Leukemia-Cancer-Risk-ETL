@@ -25,7 +25,6 @@ def load_db_credentials(json_path: str) -> Dict[str, str]:
         with open(json_path, 'r') as f:
             creds = json.load(f)
             
-        # Verify required keys are present
         required_keys = ['db_host', 'db_name', 'db_user', 'db_password']
         if not all(key in creds for key in required_keys):
             missing = set(required_keys) - set(creds.keys())
@@ -41,15 +40,16 @@ def load_db_credentials(json_path: str) -> Dict[str, str]:
 
 def export_to_postgres(df_dict: Dict[str, pd.DataFrame], validation_success: bool ) -> None:
     """
-    Exports all DataFrames to PostgreSQL database
-    
-    Args:
-        df_dict: Dictionary of {table_name: DataFrame} to export
-        
-    Raises:
-        RuntimeError: If export fails
-    """
+    Export DataFrames to PostgreSQL if validation succeeds.
 
+    Args:
+        df_dict: Dictionary mapping table names to DataFrames.
+        validation_success: Whether Great Expectations validation passed.
+
+    Raises:
+        RuntimeError: If database export fails.
+    """
+    
     if not validation_success:
         print("Validations failed. Unable to load data to PostgreSQL DB")
         return

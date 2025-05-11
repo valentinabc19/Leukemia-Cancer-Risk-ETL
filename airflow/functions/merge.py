@@ -8,8 +8,10 @@ def merge_dataframes(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     Args:
         df1: First DataFrame
         df2: Second DataFrame
+
     Returns:
         Merged DataFrame
+        
     Raises:
         ValueError: If 'country' column is not present in both DataFrames
     """

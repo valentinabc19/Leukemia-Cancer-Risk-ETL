@@ -46,7 +46,17 @@ def extract_region(df: pd.DataFrame) -> pd.DataFrame:
 
 def extract_leukemia_facts(df: pd.DataFrame, patient_ids: Dict[Any, int], region_ids: Dict[str, int]) -> pd.DataFrame:
 
-    """Extracts facts using your actual column names"""
+    """
+    Extracts and transforms leukemia-related fact data from a DataFrame.
+
+    Parameters:
+        df: Input DataFrame containing raw leukemia and contextual data.
+        patient_ids: Dictionary mapping original patient identifiers to integer IDs.
+        region_ids: Dictionary mapping country names to region IDs.
+
+    Returns:
+        Transformed DataFrame with mapped patient and region IDs, excluding the country column.
+    """
     facts = df[[
         'id', 'country', 'wbc_count', 'rbc_count', 'platelet_count',
         'hemoglobin_level', 'bone_marrow_blasts', 'bmi', 'leukemia_status', 'living_status', 
@@ -123,36 +133,3 @@ def process_dimensions(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
         'Dim_PatientInfo': dim_patient,
         'Dim_MedicalHistory': dim_medical,
     }
-
-
-'''def main(data_path: str, creds_path: str) -> None:
-
-    """
-    Main execution function for complete ETL pipeline
-    
-    Args:
-        data_path: Path to source data file
-        creds_path: Path to credentials JSON file
-    """
-    try:
-        print(f"Loading data from {data_path}")
-        df = pd.read_csv(data_path)
-        
-        print("Processing data dimensions...")
-        dimensions = process_dimensions(df)
-     
-        print(f"Loading credentials from {creds_path}")
-        creds = load_db_credentials(creds_path)
-        
-        print("Exporting to PostgreSQL database...")
-        export_to_postgres(dimensions, creds)
-        
-        print("ETL pipeline completed successfully!")
-        
-    except Exception as e:
-        print(f"ETL pipeline failed: {str(e)}")
-        raise
-
-
-DATA_FILE = "/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/data/biased_leukemia_dataset.csv"
-CREDS_FILE = "/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/credentialsdb.json"'''

@@ -162,6 +162,15 @@ def latest_year_data (df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def process_world_bank_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cleans and preprocesses World Bank data through a sequence of transformation steps.
+
+    Parameters:
+        df: Raw World Bank data as a DataFrame.
+
+    Returns:
+        Cleaned and preprocessed World Bank DataFrame ready for analysis.
+    """
 
     df = standardize_country_names(df)
     df = filter_countries(df)
