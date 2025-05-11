@@ -10,16 +10,16 @@ def standardize_country_names(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with standardized country names.
     """
-    corrections = {
-    "usa": "united states",
-    "uk": "united kingdom",
-    "turkey": "turkiye",
-    "russia": "russian federation",
-    "south korea": "korea, rep." 
-    } 
 
     df['Country'] = df['Country'].str.lower()
-    df['Country'] = df['Country'].replace(corrections)
+    df.loc[:, 'Country'] = df['Country'].replace({
+    "united states": "usa",
+    "united kingdom": "uk",
+    "turkiye": "turkey" ,
+    "russian federation": "russia" ,
+    "korea, rep.": "south korea"
+    })
+   
     return df
 
 
@@ -36,7 +36,8 @@ def filter_countries(df: pd.DataFrame) -> pd.DataFrame:
 
     needed_countries = ['argentina', 'australia', 'brazil', 'canada', 'china', 'france', 'germany', 'india', 'italy', 'japan', 'mexico', 'netherlands', 'norway', 'russia', 'saudi arabia', 'south africa', 'south korea', 'spain', 'sweden', 'turkey', 'uk', 'usa']
 
-    return df[df['Country'].isin(needed_countries)]
+    df = df[df['Country'].isin(needed_countries)]
+    return df
 
 def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -62,8 +63,9 @@ def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
     'Prevalence of undernourishment': 'undernourishment_rate',
     'Total alcohol consumption per capita (liters of pure alcohol)': 'alcohol_consumption_liters'
     }
+    df = df.rename(columns=rename_dict)
 
-    return df.rename(columns=rename_dict)
+    return df
 
 def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -102,7 +104,8 @@ def drop_high_null_columns(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with specified columns dropped.
     """
-    return df.drop(columns=["slum_population_pct", "food_insecurity_rate", "poverty_rate"])
+    df = df.drop(columns=["slum_population_pct", "food_insecurity_rate", "poverty_rate"])
+    return df
 
 
 def impute_nuclear_energy(df: pd.DataFrame) -> pd.DataFrame:
@@ -141,6 +144,7 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
     upper_bound = Q3 + 1.5 * IQR
 
     df = df[~((df['country'] == 'france') & (df['fertilizer_consumption'] > upper_bound))]
+    return df
 
 def latest_year_data (df: pd.DataFrame) -> pd.DataFrame:
     """

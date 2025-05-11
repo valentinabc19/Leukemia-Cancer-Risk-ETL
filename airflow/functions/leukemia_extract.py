@@ -3,20 +3,21 @@ from sqlalchemy import create_engine
 import pandas as pd
 import json
 
+ROOT_DIR = root_dir = os.path.abspath(os.path.join(__file__, "../../../"))
+CREDENTIALS_PATH = os.path.join(ROOT_DIR, "credentials.json")   
+
 def extract_data()-> pd.DataFrame:
 
     """ Extract data of the leukemia patients from the database in PostgreSQL."""
 
-    try:
+    """try:
         os.chdir("../../Leukemia-Cancer-Risk-ETL")
     except FileNotFoundError:
-        print("""
-            FileNotFoundError - The directory may not exist or you are not located in the specified path.
-            """)
+        print("FileNotFoundError - The directory may not exist or you are not located in the specified path.")
     os.chdir("..")
-    print(os.getcwd())
+    print(os.getcwd())"""
 
-    with open("Leukemia-Cancer-Risk-ETL/credentials.json", "r", encoding="utf-8") as file:
+    with open(CREDENTIALS_PATH, "r", encoding="utf-8") as file:
         credentials = json.load(file)
 
     db_host = credentials["db_host"]

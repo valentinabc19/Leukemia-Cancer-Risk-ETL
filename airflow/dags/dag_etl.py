@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 import pandas as pd
 import sys
 
+ROOT_DIR = root_dir = os.path.abspath(os.path.join(__file__, "../../../"))
+if root_dir not in sys.path:
+	sys.path.append(root_dir)      
 sys.path.append("/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/airflow/functions")
 
 from etl import extract_data, process_dimensions, export_to_postgres, load_db_credentials

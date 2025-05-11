@@ -1,7 +1,11 @@
 import json
 import pandas as pd
+import os
 from sqlalchemy import create_engine
 from typing import Dict
+
+ROOT_DIR = os.path.abspath(os.path.join(__file__, "../../../"))
+CREDENTIALS_PATH = os.path.join(ROOT_DIR, "credentialsdb.json")  
     
 def load_db_credentials(json_path: str) -> Dict[str, str]:
  
@@ -35,7 +39,7 @@ def load_db_credentials(json_path: str) -> Dict[str, str]:
         raise ValueError(f"Credentials file not found at {json_path}")
     
 
-def export_to_postgres(df_dict: Dict[str, pd.DataFrame], creds: Dict[str, str], schema: str = None) -> None:
+def export_to_postgres(df_dict: Dict[str, pd.DataFrame], schema: str = None) -> None:
     """
     Exports all DataFrames to PostgreSQL database
     
@@ -47,6 +51,8 @@ def export_to_postgres(df_dict: Dict[str, pd.DataFrame], creds: Dict[str, str], 
     Raises:
         RuntimeError: If export fails
     """
+
+    creds = load_db_credentials(CREDENTIALS_PATH)
     try:
   
         engine = create_engine(

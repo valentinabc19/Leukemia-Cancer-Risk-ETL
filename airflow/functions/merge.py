@@ -1,4 +1,3 @@
-import json
 import pandas as pd
 
 def merge_dataframes(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
