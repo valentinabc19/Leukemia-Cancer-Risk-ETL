@@ -39,31 +39,32 @@ def load_db_credentials(json_path: str) -> Dict[str, str]:
         raise ValueError(f"Credentials file not found at {json_path}")
     
 
-def export_to_postgres(df_dict: Dict[str, pd.DataFrame], results: Dict[str, pd.DataFrame] ) -> None:
+def export_to_postgres(df_dict: Dict[str, pd.DataFrame], validation_success: bool ) -> None:
     """
     Exports all DataFrames to PostgreSQL database
     
     Args:
         df_dict: Dictionary of {table_name: DataFrame} to export
-        creds: Database credentials dictionary
-        schema: Target schema name (optional)
         
     Raises:
         RuntimeError: If export fails
     """
 
+    if not validation_success:
+        print("Validations failed. Unable to load data to PostgreSQL DB")
+        return
+    
     creds = load_db_credentials(CREDENTIALS_PATH)
     try:
-  
+
         engine = create_engine(
             f"postgresql://{creds['db_user']}:{creds['db_password']}@"
             f"{creds['db_host']}:5432/{creds['db_name']}",
             connect_args={'connect_timeout': 10}
         )
         
-   
-        with engine.connect() as conn:
-            print("Successfully connected to PostgreSQL database")
+
+        print("Successfully connected to PostgreSQL database")
         
 
         for table_name, df in df_dict.items():
@@ -71,7 +72,6 @@ def export_to_postgres(df_dict: Dict[str, pd.DataFrame], results: Dict[str, pd.D
                 df.to_sql(
                     name=table_name.lower(),
                     con=engine,
-                    schema=None,
                     if_exists='replace',
                     index=False,
                     chunksize=1000,
@@ -81,10 +81,11 @@ def export_to_postgres(df_dict: Dict[str, pd.DataFrame], results: Dict[str, pd.D
             except Exception as e:
                 print(f"Failed to export {table_name}: {str(e)}")
                 continue
-                
+
     except Exception as e:
         raise RuntimeError(f"Database export failed: {str(e)}")
     finally:
         if 'engine' in locals():
             engine.dispose()
             print("Database connection closed")
+    

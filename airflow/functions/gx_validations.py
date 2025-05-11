@@ -92,22 +92,46 @@ def add_fact_leukemia_expectations(suite, df):
         column="living_status", value_set=[0, 1]
     ))
     
-    numeric_cols = [
-        "wbc_countsort", "rbc_countsort", "platelet_countsort", "hemoglobin_level",
-        "bone_marrow_blasts", "bmi", "fertilizer_consumption", "gdp_per_capita",
-        "pm25_pollution", "undernourishment_grade", "agri_employment_pct",
-        "co2_emissions_per_capita", "nuclear_energy_pct", "alcohol_consumption_liters"
-    ]
+    float_columns = {
+        "rbc_count": (0, 10),
+        "hemoglobin_level": (4, 25),
+        "bmi": (8, 50),
+        "fertilizer_consumption": (0, None),
+        "gdp_per_capita": (0, None),
+        "pm25_pollution": (0, None),
+        "undernourishment_rate": (0, 100),
+        "agri_employment_pct": (0, 100),
+        "co2_emissions_per_capita": (0, None),
+        "nuclear_energy_pct": (0, 100),
+        "alcohol_consumption_liters": (0, None)
+    }
     
-    for col in numeric_cols:
+    for col, (min_val, max_val) in float_columns.items():
         if col in df.columns:
             suite.add_expectation(gx.expectations.ExpectColumnValuesToBeOfType(
                 column=col, type_="float"
             ))
             suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column=col))
             suite.add_expectation(gx.expectations.ExpectColumnValuesToBeBetween(
-                column=col, min_value=0
+                column=col, min_value=min_val, max_value=max_val
             ))
+    
+    float_columns = {
+        "wbc_count": (0, 50000),
+        "platelet_count": (20000, 470000),
+        "bone_marrow_blasts": (0, 100)
+    }
+
+    for col, (min_val, max_val) in float_columns.items():
+        if col in df.columns:
+            suite.add_expectation(gx.expectations.ExpectColumnValuesToBeOfType(
+                column=col, type_="int"
+            ))
+            suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column=col))
+            suite.add_expectation(gx.expectations.ExpectColumnValuesToBeBetween(
+                column=col, min_value=min_val, max_value=max_val
+            ))
+
     return suite
 
 def setup_validation (batch_definition, suite, validation_name):
@@ -127,10 +151,8 @@ def run_validation(validation_definition, dataframe):
 
 def validate_all_dataframes(df):
     """Validate all four dataframes and return their results."""
-    # Initialize single context and data source
     batch_definition = configure_gx()
     
-    # Map DataFrame names to expectation functions
     expectation_functions = {
         "Dim_PatientInfo": add_dim_patient_info_expectations,
         "Dim_MedicalHistory": add_dim_medical_history_expectations,
@@ -147,21 +169,27 @@ def validate_all_dataframes(df):
     
     results = {}
     for df_name, dataframe in dataframes.items():
-        # Set up validation for the current DataFrame
         suite = setup_suite(f"{df_name}_suite")
         
-        # Add specific expectations
         expectation_functions[df_name](suite, dataframe)
         
         validation_definition = setup_validation(batch_definition, suite, f"{df_name}_validation" )
-        # Run validation and store results
         results[df_name] = run_validation(validation_definition, dataframe)
     
     return results
 
-def validation_results(df):
+def validation_results(df)-> bool:
 
+    """
+    Validate all DataFrames and return True if all validations pass, False otherwise.
+    
+    Args:
+        df: Dictionary of {table_name: DataFrame} to validate
+    
+    Returns:
+        bool: True if all validations pass, False if any fail
+    """
     results = validate_all_dataframes(df)
-    for df_name, result in results.items():
-        print(f"Validation results for {df_name}:")
-        print(result)
+    
+    all_passed = all(result["success"] for result in results.values())
+    return all_passed
