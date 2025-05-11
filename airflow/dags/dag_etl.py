@@ -2,15 +2,21 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import pandas as pd
+import os
 import sys
 
-ROOT_DIR = root_dir = os.path.abspath(os.path.join(__file__, "../../../"))
+ROOT_DIR = os.path.abspath(os.path.join(__file__, "../"))
 
-if root_dir not in sys.path:
-	sys.path.append(root_dir)      
-sys.path.append("/home/ubuntu/Escritorio/Leukemia-Cancer-Risk-ETL/airflow/functions")
+if ROOT_DIR not in sys.path:
+	sys.path.append(ROOT_DIR)      
 
-from etl import extract_data, process_dimensions, export_to_postgres, load_db_credentials
+from functions.leukemia_extract import extract_data
+from functions.api_extraction import api_data_extraction
+from functions.api_transformations import process_world_bank_data
+from functions.merge import merge_dataframes
+from functions.dimensional_model_transform import process_dimensions
+from functions.gx_validations import validation_results
+from functions.load_data import export_to_postgres
 
 default_args = {
     'owner': 'airflow',
