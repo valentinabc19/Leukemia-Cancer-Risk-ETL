@@ -68,7 +68,6 @@ class TestApiTranformations(unittest.TestCase):
 
 		df = standardize_country_names(self.df.copy())
 		df = rename_columns(df)
-		#df['country'] = df['country']
 		result = impute_nuclear_energy(df)
 		self.assertFalse(result['nuclear_energy_pct'].isna().any())
 		
@@ -97,6 +96,18 @@ class TestApiTranformations(unittest.TestCase):
 		"""Test the processing of the world bank data."""
 
 		result = process_world_bank_data(self.df.copy())
+
+		columns_expected_clean = [
+			'nuclear_energy_pct',
+			'alcohol_consumption_liters',
+			'fertilizer_consumption',
+			'undernourishment_rate',
+			'pm25_pollution'
+		]
+		for col in columns_expected_clean:
+			self.assertFalse(result[col].isna().any(), f"Column {col} still contains missing values after processing.")
+
+		self.assertFalse(result['fertilizer_consumption'].isna().any())
 		self.assertIn('co2_emissions_per_capita', result.columns)
 		self.assertNotIn('year', result.columns)
 		self.assertFalse(result.isna().any().any())

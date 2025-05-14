@@ -1,11 +1,12 @@
 """Unit testing for the transformations of the leukemia dataset"""
 
 import pandas as pd
-import pytest
+import unittest
+from unittest import mock
 import os
 import sys
 
-from unittest import mock
+
 
 ROOT_DIR = os.path.abspath(os.path.join(__file__, "../../../"))
 if ROOT_DIR not in sys.path:
@@ -13,17 +14,11 @@ if ROOT_DIR not in sys.path:
 	
 from airflow.functions.dimensional_model_transform import extract_medical_history, extract_region, extract_leukemia_facts, extract_patient_info, process_dimensions
 
-def test_extract_medical_history():
-	return ""
+class TestLeukemiaTransformations(unittest.TestCase):
+	"""Test the transformations of th leukemia dataset."""
 
-def test_extract_region():
-	return ""
+	def setUp(self):
+		"""Set up a sample data archive for testing."""
 
-def test_extract_leukemia_facts():
-	return ""
-
-def test_extract_patient_info():
-	return ""
-
-def test_process_dimensions():
-	return ""
+		file_path = os.path.join(ROOT_DIR, "Leukemia-Cancer-Risk-ETL", "tests", "data", "test_leukemia_data.csv")
+		self.df = pd.read_csv(file_path)
