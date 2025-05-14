@@ -11,6 +11,9 @@ def standardize_country_names(df: pd.DataFrame) -> pd.DataFrame:
         DataFrame with standardized country names.
     """
 
+    if 'Country' not in df.columns:
+        raise ValueError("Missing 'Country' column in DataFrame")
+
     df['Country'] = df['Country'].str.lower()
     df.loc[:, 'Country'] = df['Country'].replace({
     "united states": "usa",
@@ -19,7 +22,6 @@ def standardize_country_names(df: pd.DataFrame) -> pd.DataFrame:
     "russian federation": "russia" ,
     "korea, rep.": "south korea"
     })
-   
     return df
 
 
@@ -118,6 +120,8 @@ def impute_nuclear_energy(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with imputed 'nuclear_energy_pct' values.
     """
+    df['nuclear_energy_pct'] = pd.to_numeric(df['nuclear_energy_pct'], errors='coerce')
+
     df['nuclear_energy_pct'] = df.groupby('country')['nuclear_energy_pct'].ffill().bfill()
     df['nuclear_energy_pct'] = df.groupby('country')['nuclear_energy_pct'].transform(
         lambda x: x.interpolate(method='linear', limit_area='inside')
