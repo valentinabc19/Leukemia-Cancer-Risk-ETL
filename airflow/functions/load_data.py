@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from typing import Dict
 
 ROOT_DIR = os.path.abspath(os.path.join(__file__, "../../../"))
-CREDENTIALS_PATH = os.path.join(ROOT_DIR, "credentialsdb.json")  
+CREDENTIALS_PATH = os.path.join(ROOT_DIR, "credentials.json")  
     
 def load_db_credentials(json_path: str) -> Dict[str, str]:
  
