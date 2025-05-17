@@ -52,17 +52,12 @@ class TestApiTranformations(unittest.TestCase):
 		df = standardize_country_names(self.df.copy())
 		df = rename_columns(df)
 		df['Country'] = df['country']
-<<<<<<< HEAD
 
 		with warnings.catch_warnings():
 			warnings.simplefilter("ignore", category=RuntimeWarning)
 
 			result = handle_missing_values(df)
 			self.assertFalse(result['alcohol_consumption_liters'].isna().any())
-=======
-		result = handle_missing_values(df)
-		self.assertFalse(result['alcohol_consumption_liters'].isna().any())
->>>>>>> develop
 
 	def test_drop_high_null_columns(self):
 		"""Test the dropping of columns with high nulls values."""
@@ -104,7 +99,6 @@ class TestApiTranformations(unittest.TestCase):
 	def test_process_world_bank_data(self):
 		"""Test the processing of the world bank data."""
 
-<<<<<<< HEAD
 		with warnings.catch_warnings():
 			warnings.simplefilter("ignore", category=RuntimeWarning)
 
@@ -124,24 +118,6 @@ class TestApiTranformations(unittest.TestCase):
 			self.assertIn('co2_emissions_per_capita', result.columns)
 			self.assertNotIn('year', result.columns)
 			self.assertFalse(result.isna().any().any())
-=======
-		result = process_world_bank_data(self.df.copy())
-
-		columns_expected_clean = [
-			'nuclear_energy_pct',
-			'alcohol_consumption_liters',
-			'fertilizer_consumption',
-			'undernourishment_rate',
-			'pm25_pollution'
-		]
-		for col in columns_expected_clean:
-			self.assertFalse(result[col].isna().any(), f"Column {col} still contains missing values after processing.")
-
-		self.assertFalse(result['fertilizer_consumption'].isna().any())
-		self.assertIn('co2_emissions_per_capita', result.columns)
-		self.assertNotIn('year', result.columns)
-		self.assertFalse(result.isna().any().any())
->>>>>>> develop
 		
 if __name__ == '__main__':
 	unittest.main()
