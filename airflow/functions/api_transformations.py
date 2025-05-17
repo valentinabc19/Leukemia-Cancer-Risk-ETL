@@ -90,8 +90,8 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     few_nulls_vars = ['fertilizer_consumption', 'undernourishment_rate', 'pm25_pollution', 'alcohol_consumption_liters']
 
     for var in few_nulls_vars:
-        df.loc[:, var] = df.groupby('country')[var].transform(
-            lambda x: x.fillna(x.median()))
+        df[var] = df.groupby('country')[var].transform(lambda x: x.fillna(x.median()))
+        df[var] = df[var].fillna(df[var].median())
 
     return df
 
