@@ -17,6 +17,7 @@ from functions.merge import merge_dataframes
 from functions.dimensional_model_transform import process_dimensions
 from functions.gx_validations import validation_results
 from functions.load_data import export_to_postgres
+from kafkaa.kafka_producer import run_kafka_producer
 
 default_args = {
     'owner': 'airflow',
@@ -94,6 +95,9 @@ with DAG(
 
         export_to_postgres(dimensions_dict, validation_success)
 
+    def kafka_producer_task():
+        run_kafka_producer()
+
     extract_leukemia_op = PythonOperator(
         task_id='extract_leukemia_data',
         python_callable=extract_leukemia_task
@@ -129,6 +133,11 @@ with DAG(
         python_callable=load_task
     )
 
+    kafka_op = PythonOperator(
+        task_id='kafka_producer',
+        python_callable=kafka_producer_task
+    )
+
     extract_api_op >> process_api_op
     [extract_leukemia_op, process_api_op] >> merge_op
-    merge_op >> transform_op >> validate_op >> load_op
+    merge_op >> transform_op >> validate_op >> load_op >> kafka_op
