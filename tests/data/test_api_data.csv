@@ -1,0 +1,5 @@
+Country,Year,Fertilizer consumption,Electricity production from nuclear sources,Total alcohol consumption per capita (liters of pure alcohol),Carbon dioxide (CO2) emissions per capita,Employment in agriculture,GDP per capita,PM2.5 air pollution (mean annual exposure),Population living in slums,Poverty headcount ratio at national poverty lines,Prevalence of moderate or severe food insecurity,Prevalence of undernourishment
+United States,2022,100,10,5.5,15.2,2.5,60000,8.0,,,
+turkiye,2022,120,,0.0,2.5,20.3,9500,,15.0,10.0,20.0,5.5
+Germany,2023,, ,6.0,8.1,1.1,45000,12.1,,,
+France,2022,600,80,7.1,6.9,1.9,42000,9.3,,,
