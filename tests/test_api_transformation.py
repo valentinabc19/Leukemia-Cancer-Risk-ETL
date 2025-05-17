@@ -2,9 +2,9 @@
 
 import pandas as pd
 import unittest
-from unittest import mock
 import os
 import sys
+import warnings
 
 
 ROOT_DIR = os.path.abspath(os.path.join(__file__, "../../../"))
@@ -52,8 +52,12 @@ class TestApiTranformations(unittest.TestCase):
 		df = standardize_country_names(self.df.copy())
 		df = rename_columns(df)
 		df['Country'] = df['country']
-		result = handle_missing_values(df)
-		self.assertFalse(result['alcohol_consumption_liters'].isna().any())
+
+		with warnings.catch_warnings():
+			warnings.simplefilter("ignore", category=RuntimeWarning)
+
+			result = handle_missing_values(df)
+			self.assertFalse(result['alcohol_consumption_liters'].isna().any())
 
 	def test_drop_high_null_columns(self):
 		"""Test the dropping of columns with high nulls values."""
@@ -95,22 +99,25 @@ class TestApiTranformations(unittest.TestCase):
 	def test_process_world_bank_data(self):
 		"""Test the processing of the world bank data."""
 
-		result = process_world_bank_data(self.df.copy())
+		with warnings.catch_warnings():
+			warnings.simplefilter("ignore", category=RuntimeWarning)
 
-		columns_expected_clean = [
-			'nuclear_energy_pct',
-			'alcohol_consumption_liters',
-			'fertilizer_consumption',
-			'undernourishment_rate',
-			'pm25_pollution'
-		]
-		for col in columns_expected_clean:
-			self.assertFalse(result[col].isna().any(), f"Column {col} still contains missing values after processing.")
+			result = process_world_bank_data(self.df.copy())
 
-		self.assertFalse(result['fertilizer_consumption'].isna().any())
-		self.assertIn('co2_emissions_per_capita', result.columns)
-		self.assertNotIn('year', result.columns)
-		self.assertFalse(result.isna().any().any())
+			columns_expected_clean = [
+				'nuclear_energy_pct',
+				'alcohol_consumption_liters',
+				'fertilizer_consumption',
+				'undernourishment_rate',
+				'pm25_pollution'
+			]
+			for col in columns_expected_clean:
+				self.assertFalse(result[col].isna().any(), f"Column {col} still contains missing values after processing.")
+
+			self.assertFalse(result['fertilizer_consumption'].isna().any())
+			self.assertIn('co2_emissions_per_capita', result.columns)
+			self.assertNotIn('year', result.columns)
+			self.assertFalse(result.isna().any().any())
 		
 if __name__ == '__main__':
 	unittest.main()
