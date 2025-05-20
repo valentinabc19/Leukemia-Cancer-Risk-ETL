@@ -41,13 +41,10 @@ with DAG(
 
     def extract_api_task():
         df = api_data_extraction()
-        path = '/tmp/api_df.csv'
-        df.to_csv(path, index=False)
-        return path
+        return df
 
     def process_api_task(**context):
-        api_path = context['ti'].xcom_pull(task_ids='extract_api_data')
-        df = pd.read_csv(api_path)
+        df = context['ti'].xcom_pull(task_ids='extract_api_data')
         processed = process_world_bank_data(df)
         path = '/tmp/api_processed.csv'
         processed.to_csv(path, index=False)
