@@ -3,7 +3,7 @@ from kafka import KafkaConsumer
 import json
 import pandas as pd
 from collections import deque
-import altair as alt
+import time
 
 def consume_from_kafka_streamlit(topic: str = 'fact_table',
                                  bootstrap_servers: str = 'localhost:9092') -> None:
@@ -11,18 +11,25 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
     Consume messages from a Kafka topic and display them in real time using Streamlit.
 
     Args:
-        topic (str): Name of the Kafka topic to consume from.
-        bootstrap_servers (str): Kafka server address.
+        topic (str): Kafka topic name.
+        bootstrap_servers (str): Kafka server URL.
     """
-    st.set_page_config(page_title="Monitoreo WBC", layout="wide")
+    st.set_page_config(page_title="Leukemia Live WBC Monitor", layout="wide")
     
-    with st.container():
-        st.title("📊 Real-Time Stream: WBC Count")
-        st.markdown("### 🧬 Monitoreo en vivo del conteo de glóbulos blancos (WBC)")
-        st.markdown("Visualización en tiempo real de datos relacionados con leucemia desde Kafka")
+    with open("style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-    placeholder = st.empty()
+    st.title("📊 Live WBC Count Dashboard")
+    st.markdown("Streaming **Leukemia Analysis** data in real time from Kafka.")
+
+    with st.sidebar:
+        st.header("⚙️ Configuración")
+        st.write(f"**Topic Kafka:** `{topic}`")
+        st.write(f"**Servidor Kafka:** `{bootstrap_servers}`")
+        st.info("Asegúrate de que el productor esté enviando datos.")
+
     data = deque(maxlen=1000)
+    placeholder = st.empty()
 
     try:
         consumer = KafkaConsumer(
@@ -33,46 +40,38 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
             group_id='leukemia-consumer-group',
             value_deserializer=lambda x: json.loads(x.decode('utf-8'))
         )
-        st.success("🟢 Conectado al broker Kafka")
     except Exception as e:
-        st.error(f"❌ No se pudo conectar al broker Kafka: {e}")
+        st.error(f"No se pudo conectar a Kafka: {e}")
         return
 
-    run_stream = st.toggle("▶️ Iniciar visualización en tiempo real", value=True)
+    for message in consumer:
+        row = message.value
+        data.append(row)
 
-    if run_stream:
-        for message in consumer:
-            row = message.value  # Ejemplo: {"wbc_count": 6.2}
-            data.append(row)
-            df = pd.DataFrame(data)
+        df = pd.DataFrame(data)
 
-            with placeholder.container():
-                if not df.empty and 'wbc_count' in df.columns:
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric(label="🧪 Último WBC", value=round(df['wbc_count'].iloc[-1], 2))
-                    with col2:
-                        st.metric(label="📈 Máximo", value=round(df['wbc_count'].max(), 2))
-                    with col3:
-                        st.metric(label="📉 Mínimo", value=round(df['wbc_count'].min(), 2))
+        with placeholder.container():
+            st.subheader("📈 Últimos 100 registros")
+            col1, col2 = st.columns([3, 1])
 
-                    st.dataframe(df.tail(100), use_container_width=True)
+            with col1:
+                st.dataframe(df.tail(100), use_container_width=True)
 
-                    chart = alt.Chart(df.tail(50).reset_index()).mark_line(point=True).encode(
-                        x=alt.X('index:Q', title='Últimos registros'),
-                        y=alt.Y('wbc_count:Q', title='Conteo WBC'),
-                        tooltip=['index', 'wbc_count']
-                    ).properties(
-                        width='container',
-                        height=300,
-                        title='Tendencia reciente del conteo WBC'
-                    ).configure_axis(
-                        labelFontSize=12,
-                        titleFontSize=14
-                    ).configure_title(
-                        fontSize=16
-                    )
-                    st.altair_chart(chart, use_container_width=True)
+            with col2:
+                if 'wbc_count' in df.columns:
+                    latest_wbc = df['wbc_count'].iloc[-1]
+                    st.metric("Último WBC Count", f"{latest_wbc}")
                 else:
-                    st.info("Esperando datos de Kafka...")
+                    st.warning("No se encontró la columna 'wbc_count' en los datos.")
 
+            st.divider()
+
+            if 'wbc_count' in df.columns:
+                st.subheader("📊 Tendencia de WBC (últimos 50)")
+                st.line_chart(df['wbc_count'].tail(50))
+
+        time.sleep(0.5)
+
+
+if __name__ == "__main__":
+    consume_from_kafka_streamlit(topic='fact_table')
