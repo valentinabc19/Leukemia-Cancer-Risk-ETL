@@ -2,7 +2,9 @@ import streamlit as st
 from kafka import KafkaConsumer
 import json
 import pandas as pd
+from collections import deque
 import time
+import altair as alt
 
 
 def consume_from_kafka_streamlit(topic: str = 'fact_table',
@@ -19,6 +21,7 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
 
     placeholder = st.empty()
     data = []
+    data = deque(maxlen=1000)
 
     try:
         consumer = KafkaConsumer(
@@ -39,10 +42,13 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
 
         df = pd.DataFrame(data)
 
-        placeholder.dataframe(df.tail(100), use_container_width=True)
+        with placeholder.container():
+            st.dataframe(df.tail(100), use_container_width=True)
+            if 'wbc_count' in df.columns:
+                st.line_chart(df['wbc_count'].tail(50))
 
-        if len(data) > 1000:
-            data = data[-500:]  # Retain only recent records
+        #if len(data) > 1000:
+        #    data = data[-500:]  # Retain only recent records
 
         time.sleep(0.5)
 
