@@ -26,7 +26,7 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
         st.header("⚙️ Configuración")
         st.write(f"**Kafka Topic:** `{topic}`")
         st.write(f"**Kafka Server:** `{bootstrap_servers}`")
-        st.info("Asegúrate de que el productor esté enviando datos.")
+        st.info("Make sure the producer is sending data.")
 
     data = deque(maxlen=1000)
     placeholder = st.empty()
