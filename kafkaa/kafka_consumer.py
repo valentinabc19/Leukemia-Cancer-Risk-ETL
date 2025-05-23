@@ -24,9 +24,9 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
 
     with st.sidebar:
         st.header("⚙️ Configuración")
-        st.write(f"**Topic Kafka:** `{topic}`")
-        st.write(f"**Servidor Kafka:** `{bootstrap_servers}`")
-        st.info("Asegúrate de que el productor esté enviando datos.")
+        st.write(f"**Kafka Topic:** `{topic}`")
+        st.write(f"**Kafka Server:** `{bootstrap_servers}`")
+        st.info("Make sure the producer is sending data.")
 
     data = deque(maxlen=1000)
     placeholder = st.empty()
@@ -51,7 +51,7 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
         df = pd.DataFrame(data)
 
         with placeholder.container():
-            st.subheader("📈 Últimos 100 registros")
+            st.subheader("📈 Last 100 entries")
             col1, col2 = st.columns([3, 1])
 
             with col1:
@@ -60,14 +60,14 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
             with col2:
                 if 'wbc_count' in df.columns:
                     latest_wbc = df['wbc_count'].iloc[-1]
-                    st.metric("Último WBC Count", f"{latest_wbc}")
+                    st.metric("Last WBC Count", f"{latest_wbc}")
                 else:
                     st.warning("No se encontró la columna 'wbc_count' en los datos.")
 
             st.divider()
 
             if 'wbc_count' in df.columns:
-                st.subheader("📊 Tendencia de WBC (últimos 50)")
+                st.subheader("📊 WBC Tendency (last 50)")
                 st.line_chart(df['wbc_count'].tail(50))
 
         time.sleep(0.5)
