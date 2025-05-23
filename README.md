@@ -166,7 +166,7 @@ Default credentials:
 
 ### Output
 
-The data send to the consumer in turn is sent to a dashboard in Streamlit, which can be accessed by [http://localhost:8501](http://localhost:8501)
+- The data send to the consumer in turn is sent to a dashboard in Streamlit, which can be accessed by [http://localhost:8501](http://localhost:8501)
 ---
 
 ## 📝 Pipeline Tasks
