@@ -14,23 +14,31 @@ if ROOT_DIR not in sys.path:
 from airflow.functions.api_transformations import standardize_country_names, filter_countries, rename_columns, handle_missing_values, drop_high_null_columns, impute_nuclear_energy, remove_outliers, latest_year_data, process_world_bank_data
 
 class TestApiTranformations(unittest.TestCase):
-	"""Test the API data transformation functions."""
+	"""
+	Unit tests for API data transformation functions.
+	"""
 
 	def setUp(self):
-		"""Set up a sample data archive for testing."""
+		"""
+		Load sample test data from CSV
+		"""
 
 		file_path = os.path.join(ROOT_DIR, "Leukemia-Cancer-Risk-ETL", "tests", "data", "test_api_data.csv")
 		self.df = pd.read_csv(file_path)
 
 	def test_standardize_country_names(self):
-		"""Test the standardization of country names."""
+		"""
+		Ensure that country names are standardized to lowercase format.
+		"""
 
 		result = standardize_country_names(self.df.copy())
 		expected = ['usa', 'turkey', 'germany', 'france']
 		self.assertListEqual(list(result['Country']), expected)
 	
 	def test_filter_countries(self):
-		"""Test the filtering of countries."""
+		"""
+		Verify that the dataset is filtered to only include selected countries.
+		"""
 
 		df = standardize_country_names(self.df.copy())
 		result = filter_countries(df)
@@ -38,7 +46,9 @@ class TestApiTranformations(unittest.TestCase):
 		self.assertTrue(set(result['Country']).issubset(expected_countries))
 	
 	def test_rename_columns(self):
-		"""Test the renaming of the columns."""
+		"""
+		Check if columns are renamed to match the expected naming conventions.
+		"""
 
 		df = standardize_country_names(self.df.copy())
 		df = filter_countries(df)
@@ -47,7 +57,9 @@ class TestApiTranformations(unittest.TestCase):
 		self.assertIn('fertilizer_consumption', result.columns)
 
 	def test_handle_missing_values(self):
-		"""Test the handling of missing values."""
+		"""
+		Confirm that missing values are appropriately handled and no NaNs remain in specific columns.
+		"""
 
 		df = standardize_country_names(self.df.copy())
 		df = rename_columns(df)
@@ -60,7 +72,9 @@ class TestApiTranformations(unittest.TestCase):
 			self.assertFalse(result['alcohol_consumption_liters'].isna().any())
 
 	def test_drop_high_null_columns(self):
-		"""Test the dropping of columns with high nulls values."""
+		"""
+		Verify that columns with a high percentage of missing values are dropped.
+		"""
 
 		df = rename_columns(self.df.copy())
 		result = drop_high_null_columns(df)
@@ -68,7 +82,9 @@ class TestApiTranformations(unittest.TestCase):
 		self.assertNotIn('food_insecurity_rate', result.columns)
 	
 	def test_impute_nuclear_energy(self):
-		"""Test the imputation of nuclear energy values."""
+		"""
+		Test the imputation logic for missing values in the nuclear energy percentage column.
+		"""
 
 		df = standardize_country_names(self.df.copy())
 		df = rename_columns(df)
@@ -76,7 +92,9 @@ class TestApiTranformations(unittest.TestCase):
 		self.assertFalse(result['nuclear_energy_pct'].isna().any())
 		
 	def test_remove_outliers(self):
-		"""Test the removal of outliers."""
+		"""
+		Ensure outliers are removed correctly, especially from fertilizer consumption values.
+		"""
 
 		df = standardize_country_names(self.df.copy())
 		df = rename_columns(df)
@@ -86,7 +104,9 @@ class TestApiTranformations(unittest.TestCase):
 		self.assertLessEqual(result['fertilizer_consumption'].max(), 600)
 
 	def test_latest_year_data(self):
-		"""Test the filtering of the latest year data."""
+		"""
+		Confirm that the transformation retains only the latest year for each country and drops the year column.
+		"""
 
 		df = rename_columns(self.df.copy())
 		df['country'] = ['usa', 'usa', 'france', 'france']
@@ -97,7 +117,9 @@ class TestApiTranformations(unittest.TestCase):
 		self.assertNotIn('year', result.columns)
 
 	def test_process_world_bank_data(self):
-		"""Test the processing of the world bank data."""
+		"""
+		Test the full preprocessing pipeline: missing values, renaming, filtering, and imputation.
+		"""
 
 		with warnings.catch_warnings():
 			warnings.simplefilter("ignore", category=RuntimeWarning)

@@ -5,7 +5,7 @@ import pandas as pd
 from kafka import KafkaProducer
 from sqlalchemy import create_engine
 
-# Define path to credentials file
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CREDENTIALS_PATH = os.path.join(ROOT_DIR, "credentials.json")
 

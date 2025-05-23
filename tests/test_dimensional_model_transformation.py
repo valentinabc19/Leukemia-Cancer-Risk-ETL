@@ -13,9 +13,16 @@ from airflow.functions.dimensional_model_transform import extract_medical_histor
 
 
 class TestDimensionExtraction(unittest.TestCase):
+    """
+    Unit tests for validating the extraction of dimension and fact tables
+    """
 
     def setUp(self):
-        """Set up the test case with a sample DataFrame."""
+        """
+        Set up the test case with a sample DataFrame representing patient data including demographics,
+        medical history, environmental factors, and leukemia-related information.
+        """
+        
         self.df = pd.DataFrame({
             'id': [1],
             'age': [55],
@@ -50,7 +57,9 @@ class TestDimensionExtraction(unittest.TestCase):
         })
 
     def test_extract_medical_history(self):
-        """Test the transformation of the data to creste the medical history dimension."""
+        """
+        Test the transformation of patient medical data into a unique Medical History dimension table.
+        """
         
         result = extract_medical_history(self.df)
         self.assertEqual(len(result), 1)
@@ -59,7 +68,9 @@ class TestDimensionExtraction(unittest.TestCase):
 
 
     def test_extract_region(self):
-        """Test the transformation of the data to create the region dimension."""
+        """
+        Test the creation of the Region dimension, ensuring correct mapping and assignment of region IDs.
+        """
 
         result = extract_region(self.df)
         self.assertEqual(len(result), 1)
@@ -68,7 +79,9 @@ class TestDimensionExtraction(unittest.TestCase):
 
 
     def test_extract_patient_info(self):
-        """Test the transformation of the data to create the patient info dimension."""
+        """
+        Test the creation of the Patient Info dimension and proper linkage to the Medical History dimension.
+        """
         
         med_hist = extract_medical_history(self.df)
         medical_keys = self.df[[
@@ -87,7 +100,9 @@ class TestDimensionExtraction(unittest.TestCase):
 
 
     def test_extract_leukemia_facts(self):
-        """Test the transformation of the data to create the leukemia facts table."""
+        """
+        Test the transformation into the Fact Leukemia table, ensuring all foreign keys are assigned correctly.
+        """
         
         region_df = extract_region(self.df)
         region_ids = dict(zip(region_df['country'], region_df['region_id']))
@@ -99,7 +114,9 @@ class TestDimensionExtraction(unittest.TestCase):
 
 
     def test_process_dimensions(self):
-        """Test the process_dimensions function to ensure it processes the DataFrame correctly."""
+        """
+        Test the end-to-end dimension processing function to validate correct structure and completeness.
+        """
         
         result = process_dimensions(self.df)
         self.assertIsInstance(result, dict)

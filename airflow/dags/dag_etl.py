@@ -17,7 +17,7 @@ from functions.merge import merge_dataframes
 from functions.dimensional_model_transform import process_dimensions
 from functions.gx_validations import validation_results
 from functions.load_data import export_to_postgres
-from kafkaa.kafka_producer import run_kafka_producer
+from kafka.kafka_producer import run_kafka_producer
 
 default_args = {
     'owner': 'airflow',

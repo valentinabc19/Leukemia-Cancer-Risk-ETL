@@ -9,41 +9,44 @@
 
 ## Description
 
-This project used a dataset extracted from [Kaggle](https://www.kaggle.com/datasets/ankushpanday1/leukemia-cancer-risk-prediction-dataset?resource=download) containing leukemia-related health data, which includes 143,194 patient records from 22 different countries, with biases in demographic distribution, socioeconomic status, and leukemia prevalence. This dataset has intentional biases to reflect real-world health disparities.
+This project presents the development of a complete ETL (Extract, Transform, Load) pipeline designed to process, analyze, and deliver insights on leukemia-related risk factors across various global regions. This project used a dataset extracted from [Kaggle](https://www.kaggle.com/datasets/ankushpanday1/leukemia-cancer-risk-prediction-dataset?resource=download) containing leukemia-related health data, which 143,194 patient records from 22 different countries.
 
 The technologies used are:
 
-- *Python* → Para el análisis exploratorio de datos (EDA) y la limpieza de datos.
-- *Jupyter Notebook* → Para la ejecución y documentación del código en Python.
-- *PostgreSQL* → Para el almacenamiento y gestión de los datos.
-- *PowerBI Desktop* → Para la creación de visualizaciones y dashboards.
+- *Python* → Core programming language used throughout the project for data extraction, transformation, validation, and integration tasks.
+- *Jupyter Notebook* → For the execution and documentation of Python code.
+- *PostgreSQL* → Used as the central DB for storing the processed data in a dimensional model optimized for analytical queries.
+- *Airflow* → Served as the orchestrator of the ETL pipeline, managing task dependencies and automating the data flow from extraction to loading.
+- *PowerBI Desktop* → Used to design and publish interactive dashboards that visualize key leukemia risk indicators and regional trends.
+- *Great Expectations* → Integrated into the pipeline to enforce data quality through expectations on schema, null values, ranges, and distributions.
+- *Kafka* → Implemented to enable real-time data streaming, allowing a live feed of key leukemia metrics to be consumed and visualized dynamically.
 
 The dependencies used in python are in a `requirements.txt` file
 
 ## Dataset information
 
-- **patient_id**: ID del paciente, es un número autoincremental.
-- **age**: la edad del paciente.
-- **gender**: el género del paciente, que podía ser Female (Femenino) o Male (Masculino).
-- **country**: país del que es el paciente.
-- **wbc_count**: recuente de glóbulos blancos.
-- **rbc_count**: recuento de glóbulos rojos.
-- **platelet_count**: recuento de plaquetas.
-- **hemoglobin_level**: nivel de hemoglobina.
-- **bone_marrow_blasts**: Blastos de médula ósea.
-- **genetic_mutation**: indica si se tiene alguna mutación genética, se establece con “yes” o “no”.
-- **family_history**: indica si se tiene historial familiar de leucemia, se establece con “yes” o “no”.
-- **smoking_status**: indica si el paciente fuma o ha fumado, se establece con “yes” o “no”.
-- **alcohol_consumption**: indica si el paciente consume o ha consumido, se establece con “yes” o “no”.
-- **radiation_exposure**: indica si el paciente ha estado expuesto a radiación, se establece con “yes” o “no”.
-- **infection_history**: indica si el paciente tiene un historial de infecciones, se establece con “yes” o “no”.
-- **BMI**: es el índice de masa corporal.
-- **chronic_illness**: indica si el paciente tiene una enfermedad crónica, se establece con “yes” o “no”.
-- **immune_disorders:** indica si el paciente tiene algún desorden inmunológico, se establece con “yes” o “no”.
-- **ethnicity**: indica la etnia, como “A”, “B” o “C”.
-- **socioeconomic_status**: indica el estado socieconómico del paciente. Se establece como “Medium” (medio), “Low” (bajo) y “High” (alto).
-- **urban_rural**: indica si el paciente vive en una zona rural (”Rural”) o urbana (”Urban”).
-- **leukemia_status**: indica si el paciente tiene leucemia o no. Se establece como “Negative” (negativo) o “Positive” (positivo).
+- **patient_id**: Patient ID is an auto-incremental number.
+- **age**: patient's age.
+- **gender**: the patient's gender, which could be Female or Male.
+- **country**: the patient's country.
+- **wbc_count**: white blood cells count. 
+- **rbc_count**: red blood cells count.
+- **platelet_count**
+- **hemoglobin_level**
+- **bone_marrow_blasts**
+- **genetic_mutation**: indicates whether you have a genetic mutation, set with “yes” or “no”.
+- **family_history**: indicates whether you have a family history of leukemia, set with “yes” or “no”.
+- **smoking_status**: indicates whether the patient smokes or has smoked, set with “yes” or “no”.
+- **alcohol_consumption**: indicates whether the patient consumes or has consumed alcohol, set with “yes” or “no”.
+- **radiation_exposure**: indicates whether the patient has been exposed to radiation, set with “yes” or “no”.
+- **infection_history**: indicates whether the patient has a history of infections, set with “yes” or “no”.
+- **BMI**: is the body mass index.
+- **chronic_illness**: indicates whether the patient has a chronic disease, set with “yes” or “no”.
+- **immune_disorders:** indicates whether the patient has an immune disorder, set with “yes” or “no”.
+- **ethnicity**: indicates ethnicity, such as “A”, “B” or “C”.
+- **socioeconomic_status**: indicates the socioeconomic status of the patient, it is set as “Medium”, “Low” and “High”.
+- **urban_rural**: indicates whether the patient lives in a rural or urban area.
+- **leukemia_status**: indicates whether the patient has leukemia or not, it is set as “Negative” or “Positive”.
 
 
 ## 📂 Project Structure
@@ -51,15 +54,18 @@ The dependencies used in python are in a `requirements.txt` file
 ```
 Leukemia-Cancer-Risk-ETL/
 ├── airflow/                  # Airflow-related files
-├── dags/                      # Airflow DAG
-│   ├── dag_etl.py
-│   ├── etl.py
+│   ├── dags/                      
+│   │   ├── dag_etl.py        # Airflow DAG
+│   ├── functions/            # Folder with all the functions used in the DAG
 ├── api/                      # API data extraction and EDA
 ├── dashboard/
 ├── data/                     # Data storaged
+├── kafka/                    # Scripts for the producer and the consumer in the streaming  
 ├── notebooks/                # Jupyter notebooks
+├── tests/                    # Unit tests of the transformations
 ├── venv/                     # Virtual environment
 ├── .gitignore                # Git ignore file
+├── docker-compose.yml        # docker compose used for the proper functioning of kafka
 └── requirements.txt          # Project dependencies
 ```
 
@@ -98,7 +104,7 @@ Ensure this file is included in `.gitignore`.
 ### Installing the dependencies
 The necessary dependencies are stored in a file named requirements.txt. To install the dependencies you can use the command
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 4. Configure Airflow
@@ -112,6 +118,35 @@ airflow scheduler
 
 ## 🚀 Usage
 
+### Initialize kafka
+
+Open a terminal in Visual Studio Code and start docker
+```bash
+docker-compose up -d --build
+```
+
+Use this command to see the containers that are running
+```bash
+docker ps
+```
+
+Select the ID of the kafka container and open the bash of this one
+```bash
+docker exec -it ID bash
+```
+
+Run this command to iniatilize the consumer
+```bash
+kafka-console-consumer --bootstrap-server IDContainer:9092 --topic fact_table --from-beginning
+```
+
+### Initialize Airflow
+
+Run this command to initialize airflow
+```bash
+airflow standalone
+```
+
 ### Access Airflow UI
 
 Open your browser and go to [http://localhost:8080](http://localhost:8080).  
@@ -121,7 +156,7 @@ Default credentials:
 
 ### Trigger the DAG
 
-- Locate the `etl_pipeline` DAG.
+- Locate the `leukemia_etl` DAG.
 - Turn it **On** and click **"Trigger DAG"**.
 
 ### Monitor the Pipeline
@@ -131,15 +166,18 @@ Default credentials:
 
 ### Output
 
-- Final dataset saved in PostgreSQL under `data_pipeline`.
-- If implemented, data is uploaded to Google Drive.
-
+The data send to the consumer in turn is sent to a dashboard in Streamlit, which can be accessed by [http://localhost:8501](http://localhost:8501)
 ---
 
 ## 📝 Pipeline Tasks
 
-The `etl_pipeline` DAG includes:
+The `leukemia_etl` DAG includes:
 
-- `extract_task`
-- `transform_task`
-- `load_task`
+- `extract_leukemia_op`
+- `extract_api_op`
+- `process_api_op`
+- `merge_op`
+- `transform_op`
+- `validate_op`
+- `load_op`
+- `kafka_op`

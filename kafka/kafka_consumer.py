@@ -23,7 +23,7 @@ def consume_from_kafka_streamlit(topic: str = 'fact_table',
     st.markdown("Streaming **Leukemia Analysis** data in real time from Kafka.")
 
     with st.sidebar:
-        st.header("⚙️ Configuración")
+        st.header("⚙️ Configuration")
         st.write(f"**Kafka Topic:** `{topic}`")
         st.write(f"**Kafka Server:** `{bootstrap_servers}`")
         st.info("Make sure the producer is sending data.")
