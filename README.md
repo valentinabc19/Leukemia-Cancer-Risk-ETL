@@ -100,6 +100,7 @@ To make a connection to the database you must have the database credentials in a
 }
 ```
 Ensure this file is included in `.gitignore`.
+> Before running the pipeline, make sure the target database is properly created and configured, as it will serve as the destination for storing the processed data. This step is essential to ensure smooth data loading and prevent connection or schema-related issues during execution.
 
 ### Installing the dependencies
 The necessary dependencies are stored in a file named requirements.txt. To install the dependencies you can use the command
