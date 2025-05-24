@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 import json
 
-ROOT_DIR = root_dir = os.path.abspath(os.path.join(__file__, "../../../"))
+ROOT_DIR = os.path.abspath(os.path.join(__file__, "../../../"))
 CREDENTIALS_PATH = os.path.join(ROOT_DIR, "credentials.json")   
 
 def extract_data()-> pd.DataFrame:
