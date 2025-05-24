@@ -150,7 +150,7 @@ airflow standalone
 ### Access Airflow UI
 
 Open your browser and go to [http://localhost:8080](http://localhost:8080).  
-Default credentials:  
+Use the credentials given to you in Airflow standalone runtime, for example:  
 - **Username**: `airflow`  
 - **Password**: `airflow`
 
